@@ -1,0 +1,7 @@
+"0","  # aggregate returns by week"
+"0","  by <- timeSequence(from=start(ts.all), "
+"0","                     to=end(ts.all), by='week')"
+"0","  ts.all.weekly <- aggregate(ts.all, by, sum)"
+"0",""
+"0","  ts.stocks <- ts.all.weekly[,-40]"
+"0","  ts.index <- ts.all.weekly[,40]"

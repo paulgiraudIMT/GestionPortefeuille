@@ -1,0 +1,4 @@
+"0","library(lubridate)"
+"0","source(file.path(get.src.folder(), 'utils.R'))"
+"2","Error in library(plotrix) : aucun package nommé ‘plotrix’ n'est trouvé
+"
