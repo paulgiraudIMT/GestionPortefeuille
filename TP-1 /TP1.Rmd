@@ -27,6 +27,7 @@ library(lubridate)
 library(Hmisc)
 library(tseries)
 library(timeSeries)
+library(kableExtra)
 
 
 get.src.folder <- function() {
@@ -114,5 +115,17 @@ Commenter les résultats obtenus.
 
 + Effectuer une ACP de la matrice de covariance des rendements hebdomadaires
 + Observer les projections des variables sur les premiers vecteurs propres, et tenter de fournir une interprétation économique de vos observations.
+
+## Calcul de correlation
+
+```{r, correlation, warning=FALSE, echo=TRUE} 
+cov.all <- cor(ts.all)
+cov.all[lower.tri(cov.all)] <- NA
+options(knitr.kable.NA = '')
+kable(cov.all, "latex", booktabs=T, digits=2, caption="Corrélation des rendements") %>%
+kable_styling(latex_options="scale_down")
+corrplot::corrplot(cov.all, type='upper', tl.pos = 'n', order = 'hclust')
+```
+
 
 
