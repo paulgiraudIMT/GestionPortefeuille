@@ -1,0 +1,266 @@
+---
+title: "Gestion de Portefeuille"
+subtitle: 'TP-1: Analyse du CAC40'
+author: Berthoumieu Aymeric, Jallouli Mouad, Kingne Jéhoiakim
+date: "Février-Mars 2021"
+output:
+  pdf_document:
+    keep_tex: yes
+    fig_caption: yes
+    latex_engine: pdflatex
+  word_document: default
+geometry: margin=1in
+header-includes:
+- \usepackage[utf8]{inputenc}
+- \usepackage{amsmath}
+- \usepackage{amsfonts}
+- \usepackage{amssymb}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r load-libraries, include=FALSE, echo=TRUE}
+library(lubridate)
+library(Hmisc)
+library(tseries)
+library(timeSeries)
+library(corrplot)
+library(zoo)
+
+get.src.folder <- function() {
+  path.expand("../GP/src")
+}
+
+get.data.folder <- function() {
+  path.expand("../GP/data")
+}
+
+source(file.path(get.src.folder(), 'utils.R'))
+source(file.path(get.src.folder(), 'FileUtils.R'))
+```
+
+
+## Les données
+
+On charge les séries de rendements pour l'indice et les composants de l'indice.
+
+```{r, get-data, warning=FALSE, echo=TRUE}
+
+  ts.all <- get.all.ts('CAC40', tickers=NULL, returns = TRUE,
+    dt.start = dmy('01Jul2007'), combine = T)
+  
+  # bad data for Valeo
+  ts.all <- ts.all[,-17]
+  
+  # keep good data window
+  ts.all <- window(ts.all, dmy('01Jul2007'), 
+                   dmy('01Jan2009'))
+  
+  # merge with cac40 index
+  cac.index <- get.ts('fchi', 'CAC40')
+
+  cac.ret <- returns(cac.index)
+  names(cac.ret) <- 'CAC40'
+  ts.all <- removeNA(cbind(ts.all, cac.ret))
+```
+
+
+```{r, plot-cac-1, echo=TRUE, fig.height=4, echo=TRUE}
+plot(ts.all[, c(1,2,3)], main='Rendement quotidien')
+```
+
+Puis on filtre les points suspects: rendements supérieur à 8 s.d.
+
+```{r, filter, warning=FALSE, echo=TRUE} 
+  # flag bad data points: > * \sigma
+  good.limit <- 8*apply(ts.all, 2, sd)
+  
+  ts.bad <- ts.all*FALSE
+  for(j in seq(ncol(ts.bad))) {
+    ts.bad[,j] <- abs(ts.all[,j]) > good.limit[j]
+  }
+  good.index <- !apply(ts.bad,1,any)
+  ts.all <- ts.all[good.index,]
+```
+
+Finalement, on calcule les rendements hebdomadaires:
+  
+```{r, weekly-return, echo=TRUE} 
+  # aggregate returns by week
+  by <- timeSequence(from=start(ts.all), 
+                     to=end(ts.all), by='week')
+  ts.all.weekly <- aggregate(ts.all, by, sum)
+
+  ts.stocks <- ts.all.weekly[,-40]
+  ts.index <- ts.all.weekly[,40]
+```
+```{r, plot-cac-2, echo=TRUE, fig.height=4}
+plot(ts.index, main='Rendement hebdomadaire de l\'indice CAC40')
+```
+
+## Calcul de correlation
+
++ Calculer la matrice de corrélation des actions de l\'indice. 
+
+```{r, correl-matrix, echo=TRUE, fig.height=6}
+cor.stocks = cor(ts.stocks)
+corrplot(cor.stocks, type="upper", cl.pos = "r", tl.pos = "lt", 
+         tl.cex = 0.5, title= "Correlation matrix of CAC 40", mar=c(0,0,1,0))
+```
+
++ Rechercher des actions fortement corrélées et d'autres qui semblent indépendantes. 
+Justifier ces observations en considérant la nature des entreprises.
+
+```{r}
+threshold <- 0.68
+highCorr <- data.frame(Ticker1=character(0), 
+                       Ticker2=character(0), 
+                       Correlation=numeric(0), 
+                       stringsAsFactors=FALSE)
+temp.cor.stocks <- cor.stocks
+diag(temp.cor.stocks) <- 0
+while (sum(temp.cor.stocks>threshold)>1) {
+  maxval <- max(temp.cor.stocks)
+  max <- which(temp.cor.stocks==maxval, arr.ind=TRUE)[1,]
+  highCorr <- rbind(highCorr, data.frame(
+    Ticker1=rownames(temp.cor.stocks)[max[1]], 
+    Ticker2=colnames(temp.cor.stocks)[max[2]], 
+    Correlation=maxval))
+  temp.cor.stocks[max[1],] <- 0
+  temp.cor.stocks[,max[1]] <- 0
+  temp.cor.stocks[max[2],] <- 0
+  temp.cor.stocks[,max[2]] <- 0
+}
+
+caption <- paste("CAC40 high correlation (higher than ", 
+                 toString(threshold),")")
+knitr::kable(highCorr, 
+             col.names=c("Ticker1", "Ticker2", "Correlation"), 
+             caption=caption,
+             digits=2, booktab=TRUE, row.names=FALSE)
+```
+### Table 1 - Forte corrélation
++ GLE (Société Générale), ACA (Credit Agricole) sont deux compagnies du même secteur (banques françaises)
++ SGO (Cie de Saint-Gobain), KER (Kering) matérieux de construction et luxe
++ MT (ArcelorMittal), ALO (Alstom) sidérurgie et transports ferroviaires
++ UG (Peugeot), RNO (Renault) sont deux compagnies du même secteur (automobile français)
++ FP (Total), DG (Vinci) énergie et concessions/construction
++ RI (Pernod Ricard), ALU (Alcatel-Lucent) distribution de vin et spiritueux et télécommunications
++ MC (LVMH), LR (Legrand) luxe et infracstructures électrique
++ CS (AXA), AIR (AIRBUS) assurance et aéronautique
+
+```{r}
+threshold <- -0.05
+lowCorr <- data.frame(v1=character(0), v2=character(0), cor=numeric(0), 
+                      stringsAsFactors=FALSE)
+temp.cor.stocks <- cor.stocks
+diag(temp.cor.stocks) <- 0
+while (sum(temp.cor.stocks<threshold)>1) {
+  minval <- min(temp.cor.stocks)
+  min <- which(temp.cor.stocks==minval, arr.ind=TRUE)[1,]
+  lowCorr <- rbind(lowCorr, data.frame(v1=rownames(temp.cor.stocks)[min[1]], 
+                                       v2=colnames(temp.cor.stocks)[min[2]], 
+                                       cor=minval))
+  temp.cor.stocks[min[1],] <- 0
+  temp.cor.stocks[,min[1]] <- 0
+  temp.cor.stocks[min[2],] <- 0
+  temp.cor.stocks[,min[2]] <- 0
+}
+
+caption <- paste("CAC40 low correlation (lower than ", toString(threshold),")")
+knitr::kable(lowCorr,
+             col.names=c("Ticker1", "Ticker2", "Correlation"), 
+             caption=caption,
+             digits=2, booktab=TRUE, row.names=FALSE)
+```
+### Table 2 - Corrélation négative
++ EI (EssilorLuxottica), BNP (BNP Paribas) 
++ SAN (Sanofi), MT (ArcelorMittal)
++ ORA (Orange), LG (Lafargue)
++ VIE (Veolia), GSZ (ENGIE)
++ OR (l'Oréal), Lr (Legrand)
++ SAF (Safran), BN (Danone)
+
+### Table 3 - Actions indépendentes
+```{r}
+epsilon <- 0.05
+lowCorr <- data.frame(v1=character(0), v2=character(0), cor=numeric(0), 
+                      stringsAsFactors=FALSE)
+temp.cor.stocks <- cor.stocks
+diag(temp.cor.stocks) <- 100
+while (sum(abs(temp.cor.stocks)<epsilon)>1) {
+  minval <- min(abs(temp.cor.stocks))
+  min <- which(abs(temp.cor.stocks)==minval, arr.ind=TRUE)[1,]
+  val <- temp.cor.stocks[min[1],min[2]]
+  lowCorr <- rbind(lowCorr, data.frame(v1=rownames(temp.cor.stocks)[min[1]], 
+                                       v2=colnames(temp.cor.stocks)[min[2]], 
+                                       cor=val))
+  temp.cor.stocks[min[1],] <- 100
+  temp.cor.stocks[,min[1]] <- 100
+  temp.cor.stocks[min[2],] <- 100
+  temp.cor.stocks[,min[2]] <- 100
+
+}
+
+caption <- paste("CAC40 correlation (independance)")
+knitr::kable(lowCorr,
+             col.names=c("Ticker1", "Ticker2", "Correlation"), 
+             caption=caption,
+             digits=2, booktab=TRUE, row.names=FALSE)
+```
+
+### Question
++ Choisir 3 titres, et reproduire la figure 3.5, page 35 du manuel de B. Pfaff.
+Commenter les résultats obtenus.
+
+- Affichage des correlations glissantes
+
+```{r}
+StocksLevel <- as.zoo(ts.stocks)[ , c("bnp.pa","ei.pa","san.pa")]
+rollc <- function(x) {
+dim <- ncol(x)
+rcor <- cor(x)[lower.tri(diag(dim) , diag = FALSE)]
+return(rcor)
+}
+rcor <- rollapply(StocksLevel , width = 5 , rollc, align = "right", 
+                  by.column = FALSE)
+colnames(rcor) <- c("bnp & ei","bnp & san","ei & san")
+plot(rcor, main = "Rolling Correlation")
+```
+
+
+## Analyse en composantes principales
+
++ Effectuer une ACP de la matrice de covariance des rendements hebdomadaires
+
+```{r, PCA, echo=TRUE}
+ts.hebdo <- ts.all.weekly
+
+nb.ev = 6
+nb.obs <- nrow(ts.hebdo)
+
+res.pca.1 <- prcomp(ts.hebdo, scale=TRUE)
+
+# normalized eigenvalues
+norm.ev <- res.pca.1$sdev^2
+norm.ev <- norm.ev/sum(norm.ev)
+
+large.ev.1 <- norm.ev[1:nb.ev]
+names(large.ev.1) <- paste("PC", seq_along(large.ev.1))
+
+
+plot.1 <- barplot(100*large.ev.1, ylim=c(0,60), 
+                  col="blue", ylab="Contribution (%)",
+                  main="First PCs of CAC40 stocks")
+lines(plot.1, 100*cumsum(large.ev.1), type="b", pch=5, col="red", lty=2)
+legend("right", legend=c("Contribution ratio", "cumulative contribution"),
+       col=c("blue", "red"), lty=1:2, cex=0.8) 
+
+```
+
++ Observer les projections des variables sur les deux premiers vecteurs propres, et tenter de fournir une interprétation économique de ces facteurs.
+
+
+- Interprétation : La décomposition en ACP sur les deux premières composantes principales capte plus de 50% du risque de l'indice (plus de 40% au risque pour la première et environ 10% du risque pour la seconde. On peut déjà supposer que  la diversification n'est pas importante dans l'indice CAC40. Ainsi, investir dans un certain nombre réduit d'actions, pourrait être équivalent, en termes d'exposition au risque, à investir dans l'indice CAC40 en totalité.
