@@ -212,7 +212,7 @@ Nous pouvons remarquer d'après la table de composition du portefeuille tangent 
 
 ```{r,  echo=TRUE}
 kable(w.tangent*100, booktabs=T, digits=2, col.names = "Proportion (%)",
-      caption="Composition du portefeuille tangeant")
+      caption="Composition du portefeuille tangent")
 ```
 
 Nous allons refaire les mêmes calcul en ajoutant des contraintes supplémentaires qui nous semblent pertinentes
@@ -319,7 +319,7 @@ chart.StackedBar(alloc, xaxis.labels=round(sol.with.rf[,"stdev"],2),
 
 ```{r,  echo=TRUE}
 kable(w.tangent*100, booktabs=T, digits=2, col.names = "Proportion (%)",
-      caption="Composition du portefeuille tangeant")
+      caption="Composition du portefeuille tangent")
 ```
 
 
@@ -429,5 +429,5 @@ chart.StackedBar(alloc, xaxis.labels=round(sol.with.rf[,"stdev"],2),
 
 ```{r,  echo=TRUE}
 kable(w.tangent*100, booktabs=T, digits=2, col.names = "Proportion (%)",
-      caption="Composition du portefeuille tangeant")
+      caption="Composition du portefeuille tangent")
 ```
