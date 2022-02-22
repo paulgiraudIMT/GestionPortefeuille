@@ -115,6 +115,8 @@ corrplot(cor.stocks, type="upper", cl.pos = "r", tl.pos = "lt",
 + Rechercher des actions fortement corrélées et d'autres qui semblent indépendantes. 
 Justifier ces observations en considérant la nature des entreprises.
 
++ On considera que les actions sont fortement corrélées lorsque la corrélation entre les deux actifs est supérieure à 0,7. 
+
 ```{r, correl-forte, echo=TRUE, fig.height=2}
 threshold <- 0.7
 highCorr <- data.frame(Ticker1=character(0), 
@@ -151,7 +153,7 @@ knitr::kable(highCorr,
 + FP (Total), DG (Vinci) énergie et concessions/construction
 + RI (Pernod Ricard), ALU (Alcatel-Lucent) distribution de vin et spiritueux et télécommunications
 + MC (LVMH), LR (Legrand) luxe et infracstructures électrique
-+ CS (AXA), AIR (AIRBUS) assurance et aéronautique
+
 
 ```{r, correl-faible, echo=TRUE, fig.height=2}
 threshold <- -0.05
