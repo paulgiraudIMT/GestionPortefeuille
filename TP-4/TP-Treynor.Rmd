@@ -501,8 +501,6 @@ Nous pouvons maintenan essayer de composer notre portefeuille d'actif seulement 
 
 ## Test du modèl de Treynor-Black pour les actifs ayants le plus grand alpha
 
-Ajoutons l'actif MMM:
-
 
 ```{r}
 chosen.assets <- c("AAPL", "HD", "AMZN")
