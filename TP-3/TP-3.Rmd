@@ -1,7 +1,7 @@
 ---
 title: "Gestion de Portefeuille"
 subtitle: "TP-3: Modèle à un facteur"
-author: Patrick Hénaff
+author: Paul Giraud , Kouamé YAO & Loïc Turounet
 date: "Version: `r format(Sys.Date(), '%d %b %Y')`"
 output:
   pdf_document:
@@ -104,9 +104,13 @@ row.names(df) <- c("alpha", "beta")
 ```
 
 ```{r, echo=TRUE}
-kable(df, "latex", booktabs=T) %>%
+kable(df, "latex", booktabs=T, caption="Alpha and Beta for each asset") %>%
 kable_styling(latex_options=c("scale_down", "HOLD_position"))
 ```
+
+
+Ainsi, nous pouvons observer d'après la Table 2, que le alpha du SPY est nul et que son beta est égale à 1. Cela nous permet de valider nos calculs de alpha et beta, en effet, le SPY a été choisi comme proxy pour le marché.
+
 
 ```{r}
 df.ret.beta <- data.frame(beta = t(df[2,]),
@@ -125,6 +129,17 @@ for(i in seq_along(names)) {
 }
 ```
 
+Résultats :
+
+-
+-
+-
+-
+-
+-
+-
+-
+-
 
 Est-ce que ces mesures de cherté relative vous semble correctes? Essayez de mesurer la robustesse de ce calcul en estimant le modèles sur des sous-intervalles de temps.
 

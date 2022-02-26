@@ -1,7 +1,7 @@
 ---
 title: "Gestion de Portefeuille"
 subtitle: 'TP-1: Analyse du CAC40'
-author: "Paul Giraud , Kouamé YAO & Loïc Turounet"
+author: Paul Giraud , Kouamé YAO & Loïc Turounet
 date: "Version: `r format(Sys.Date(), '%d %b %Y')`"
 output:
   pdf_document:
@@ -21,7 +21,7 @@ header-includes:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-```{r load-libraries, include=FALSE, echo=TRUE}
+```{r load-libraries, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
 library(lubridate)
 library(Hmisc)
 library(tseries)

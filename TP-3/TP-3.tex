@@ -38,7 +38,7 @@
 \IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
 \hypersetup{
   pdftitle={Gestion de Portefeuille},
-  pdfauthor={Patrick Hénaff},
+  pdfauthor={Paul Giraud , Kouamé YAO \& Loïc Turounet},
   hidelinks,
   pdfcreator={LaTeX via pandoc}}
 \urlstyle{same} % disable monospaced font for URLs
@@ -127,8 +127,8 @@
 }
 \makeatother
 \subtitle{TP-3: Modèle à un facteur}
-\author{Patrick Hénaff}
-\date{Version: 24 fév 2022}
+\author{Paul Giraud , Kouamé YAO \& Loïc Turounet}
+\date{Version: 26 fév 2022}
 
 \begin{document}
 \maketitle
@@ -295,15 +295,17 @@ des titres risqués. - En déduire les titres qui, selon ce modèle,
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{kable}\NormalTok{(df, }\StringTok{"latex"}\NormalTok{, }\AttributeTok{booktabs=}\NormalTok{T) }\SpecialCharTok{\%\textgreater{}\%}
+\FunctionTok{kable}\NormalTok{(df, }\StringTok{"latex"}\NormalTok{, }\AttributeTok{booktabs=}\NormalTok{T, }\AttributeTok{caption=}\StringTok{"Alpha and Beta for each asset"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
 \FunctionTok{kable\_styling}\NormalTok{(}\AttributeTok{latex\_options=}\FunctionTok{c}\NormalTok{(}\StringTok{"scale\_down"}\NormalTok{, }\StringTok{"HOLD\_position"}\NormalTok{))}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{table}[H]
+
+\caption{\label{tab:unnamed-chunk-7}Alpha and Beta for each asset}
 \centering
 \resizebox{\linewidth}{!}{
-\begin{tabular}{lrrrrrrrrrrrr}
+\begin{tabular}[t]{lrrrrrrrrrrrr}
 \toprule
   & AAPL & AMZN & MSFT & F & SPY & QQQ & XOM & MMM & HD & PG & KO & Rf\\
 \midrule
@@ -312,6 +314,11 @@ beta & 1.1948376 & 1.1465481 & 1.0148488 & 1.8508513 & 1 & 1.0959372 & 0.6751296
 \bottomrule
 \end{tabular}}
 \end{table}
+
+Ainsi, nous pouvons observer d'après la Table 2, que le alpha du SPY est
+nul et que son beta est égale à 1. Cela nous permet de valider nos
+calculs de alpha et beta, en effet, le SPY a été choisi comme proxy pour
+le marché.
 
 \begin{verbatim}
 ## 
@@ -324,6 +331,21 @@ beta & 1.1948376 & 1.1465481 & 1.0148488 & 1.8508513 & 1 & 1.0959372 & 0.6751296
 \end{verbatim}
 
 \includegraphics{TP-3_files/figure-latex/unnamed-chunk-8-1.pdf}
+
+Résultats :
+
+\begin{itemize}
+\tightlist
+\item
+\item
+\item
+\item
+\item
+\item
+\item
+\item
+\item
+\end{itemize}
 
 Est-ce que ces mesures de cherté relative vous semble correctes? Essayez
 de mesurer la robustesse de ce calcul en estimant le modèles sur des
