@@ -126,7 +126,7 @@
   \apptocmd{\@title}{\par {\large #1 \par}}{}{}
 }
 \makeatother
-\subtitle{TP-41: Modèle de Treynor Black}
+\subtitle{TP-4: Modèle de Treynor Black}
 \author{Paul Giraud , Kouamé YAO \& Loïc Turounet}
 \date{Version: 26 fév 2022}
 
@@ -302,18 +302,18 @@ En testant diverses combinaisons de titres à mettre dans le portefeuille
 actif, vous pourrez mesurer la sensibilité de modèle de Treynor-Black
 aux données.
 
-Ainsi, comme expliqué ci-dessus, les titres qui vont nous intéressés
+Ainsi, comme expliqué ci-dessus, les titres qui vont nous intéresser
 pour composer notre portefeuille d'actifs sont les titres avec des
 \(\alpha > 0\) c'est-à-dire des titres sous-cotés. En effet, nous
 comptons sur le marché pour réguler cet écart et donc avoir un profit.
 Cependant, nous pouvons aussi profiter des actifs avec des
-\(\alpha < 0\) (sur-évalué) et les shorter, toujours dans le but de
+\(\alpha < 0\) (sur-évalués) et les shorter, toujours dans le but de
 faire une plus-value.
 
 Nous allons donc composé notre portefeuille d'actifs dont les \(\alpha\)
-sont différents de 0. Malheuresement, tous les actifs présents sur le
+sont différents de 0. Malheureusement, tous les actifs présents sur le
 marché (les 11 que nous étudions) ont un \(\alpha\) différent de 0, nous
-allons donc choisir un deuxième critère de selection.
+allons donc choisir un deuxième critère de sélection.
 
 Nous allons ensuite composer notre portefeuille d'actifs à notre
 portefeuille de marché, ainsi, nous allons vouloir choisir des actifs
@@ -325,7 +325,7 @@ décorrélés du marché. Ainsi, sachant :
 
 Nous allons choisir des actifs décorrélés au marché, c'est-à-dire des
 actifs dont le \(beta\) est le plus éloigné de 1. Voici la table qui
-présente les actifs selectionnés:
+présente les actifs sélectionnés :
 
 \begin{table}[H]
 
@@ -366,6 +366,18 @@ Calculez les valeurs suivantes concernant le portefeuille actif:
 \item[$\sigma^2(e_A)$] variance résiduelle du portefeuille actif
 \end{description}
 
+Sachant:
+
+\[
+\begin{aligned}
+R_A & = \alpha_A + \beta_A R_M \\
+\sigma^2_A & = \beta^2_A \sigma^2_M + \sigma^2(e_A)  \\
+\alpha_A &= \sum{w_{Ai}}*\alpha_i \\
+\beta_A &= \sum{w_{Ai}}*\beta_i \\
+\sigma^2(e_A) &= \sum{w_{Ai}^2}*\sigma^2(e_i)\\
+\end{aligned}
+\]
+
 \begin{table}[H]
 
 \caption{\label{tab:unnamed-chunk-10}Alpha and Beta for asset in portfolio asset}
@@ -394,7 +406,7 @@ alpha\_a & 0.01044498\\
 beta\_a & 0.6859825\\
 sigma(e\_a)² & 0.2 \%\\
 Return\_a & 1.58 \%\\
-Sigma\_a & 21.42 \%\\
+Sigma\_a & 5.34 \%\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -446,14 +458,162 @@ graphique ci-dessous.
 \end{Highlighting}
 \end{Shaded}
 
+\includegraphics{TP-Treynor_files/figure-latex/unnamed-chunk-15-1.pdf}
+Nous pouvons donc voir que le portefeuille actif est très proche du
+portefeuille tangent, tout comme le portefeuille de Treynor. En effet,
+celui-ci est composé à 84\% du portefeuille d'actifs et 16\% du
+portefeuille de marché. Cependant, le portefeuille tangent reste
+optimal, car il procure un rendement plus élevé pour un même risque.
+
+\hypertarget{test-du-moduxe8le-de-treynor-black-pour-des-actifs-diffuxe9rents}{%
+\subsection{Test du modèle de Treynor-Black pour des actifs
+différents}\label{test-du-moduxe8le-de-treynor-black-pour-des-actifs-diffuxe9rents}}
+
+Ajoutons l'actif MMM:
+
+\begin{table}[H]
+
+\caption{\label{tab:unnamed-chunk-16}Alpha and Beta for asset in portfolio assets}
+\centering
+\begin{tabular}[t]{lrrrr}
+\toprule
+  & KO & HD & XOM & MMM\\
+\midrule
+alpha & 0.0056304 & 0.0080456 & -0.0031066 & 0.0007451\\
+beta & 0.5136098 & 0.8746106 & 0.6751296 & 0.9608010\\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{table}[H]
+
+\caption{\label{tab:unnamed-chunk-17}Alpha and Beta for asset in portfolio asset}
+\centering
+\begin{tabular}[t]{lrrrr}
+\toprule
+  & KO & HD & XOM & MMM\\
+\midrule
+alpha & 0.0056304 & 0.0080456 & -0.0031066 & 0.0007451\\
+beta & 0.5136098 & 0.8746106 & 0.6751296 & 0.9608010\\
+weight & 0.6674108 & 0.5902395 & -0.3416243 & 0.0839741\\
+sigma.e² & 0.0015006 & 0.0024247 & 0.0016176 & 0.0015784\\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{table}[H]
+
+\caption{\label{tab:unnamed-chunk-18}Portfolio assets}
+\centering
+\begin{tabular}[t]{ll}
+\toprule
+  & Portefeuille actif\\
+\midrule
+alpha\_a & 0.009630441\\
+beta\_a & 0.7090601\\
+sigma(e\_a)² & 0.17 \%\\
+Return\_a & 1.52 \%\\
+Sigma\_a & 5.1 \%\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{verbatim}
+## [1] "L'allocation de richesse au portefeuille actif est :  92.19 %"
+\end{verbatim}
+
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{plot}\NormalTok{(Mean }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Sd, }\AttributeTok{data=}\NormalTok{res, }\AttributeTok{xlim=}\FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\FloatTok{0.4}\NormalTok{), }\AttributeTok{ylim=}\FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, .}\DecValTok{05}\NormalTok{), }\AttributeTok{xlab=}\FunctionTok{expression}\NormalTok{(sigma),}
-     \AttributeTok{ylab=}\StringTok{"Excess Return"}\NormalTok{, }\AttributeTok{cex=}\NormalTok{.}\DecValTok{5}\NormalTok{, }\AttributeTok{bty=}\StringTok{"n"}\NormalTok{, }\AttributeTok{cex.lab=}\DecValTok{1}\NormalTok{)}
-\FunctionTok{with}\NormalTok{(res, }\FunctionTok{text}\NormalTok{(Mean }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Sd, }\AttributeTok{labels=}\FunctionTok{row.names}\NormalTok{(res), }\AttributeTok{pos=}\DecValTok{4}\NormalTok{, }\AttributeTok{cex=}\FloatTok{0.7}\NormalTok{, }\AttributeTok{col=}\StringTok{"blue"}\NormalTok{))}
+\NormalTok{Assets }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"AAPL"}\NormalTok{, }\StringTok{"AMZN"}\NormalTok{, }\StringTok{"MSFT"}\NormalTok{, }\StringTok{"F"}\NormalTok{,  }\StringTok{"XOM"}\NormalTok{, }\StringTok{"MMM"}\NormalTok{,  }\StringTok{"HD"}\NormalTok{,   }\StringTok{"PG"}\NormalTok{,   }\StringTok{"KO"}\NormalTok{)}
+\NormalTok{plot.data }\OtherTok{\textless{}{-}}\NormalTok{ monthly.ret}\FloatTok{.2}\NormalTok{[, }\FunctionTok{c}\NormalTok{(Assets, }\StringTok{"Rf"}\NormalTok{)]}
+\ControlFlowTok{for}\NormalTok{(a }\ControlFlowTok{in}\NormalTok{ Assets) \{}
+\NormalTok{  plot.data[, a] }\OtherTok{\textless{}{-}}\NormalTok{ plot.data[, a] }\SpecialCharTok{{-}}\NormalTok{ plot.data}\SpecialCharTok{$}\NormalTok{Rf}
+\NormalTok{  \}}
+
+\NormalTok{res }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Mean=}\FunctionTok{apply}\NormalTok{(plot.data[, Assets],}\DecValTok{2}\NormalTok{,mean),}
+                  \AttributeTok{Sd =} \FunctionTok{apply}\NormalTok{(plot.data[, Assets],}\DecValTok{2}\NormalTok{,sd))}
+\FunctionTok{rownames}\NormalTok{(res) }\OtherTok{\textless{}{-}}\NormalTok{ Assets}
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{TP-Treynor_files/figure-latex/unnamed-chunk-14-1.pdf}
+\includegraphics{TP-Treynor_files/figure-latex/unnamed-chunk-22-1.pdf}
+
+Ainsi, nous nous rapprochons du portefeuille tangent, cependant, plus
+nous allons rajouter de titre plus nous allons nous rapprocher du
+portefeuille de marché.
+
+Nous pouvons maintenan essayer de composer notre portefeuille d'actif
+seulement des actifs avec le plus grand \(\alpha\) sans prendre en
+compte le \(\beta\):
+
+\hypertarget{test-du-moduxe8l-de-treynor-black-pour-les-actifs-ayants-le-plus-grand-alpha}{%
+\subsection{Test du modèl de Treynor-Black pour les actifs ayants le
+plus grand
+alpha}\label{test-du-moduxe8l-de-treynor-black-pour-les-actifs-ayants-le-plus-grand-alpha}}
+
+Ajoutons l'actif MMM:
+
+\begin{table}[H]
+
+\caption{\label{tab:unnamed-chunk-23}Alpha and Beta for asset in portfolio assets}
+\centering
+\begin{tabular}[t]{lrrr}
+\toprule
+  & AAPL & HD & AMZN\\
+\midrule
+alpha & 0.0167401 & 0.0080456 & 0.0212874\\
+beta & 1.1948376 & 0.8746106 & 1.1465481\\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{table}[H]
+
+\caption{\label{tab:unnamed-chunk-24}Alpha and Beta for asset in portfolio asset}
+\centering
+\begin{tabular}[t]{lrrr}
+\toprule
+  & AAPL & HD & AMZN\\
+\midrule
+alpha & 0.0167401 & 0.0080456 & 0.0212874\\
+beta & 1.1948376 & 0.8746106 & 1.1465481\\
+weight & 0.3351335 & 0.3591162 & 0.3057502\\
+sigma.e² & 0.0054061 & 0.0024247 & 0.0075353\\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{table}[H]
+
+\caption{\label{tab:unnamed-chunk-25}Portfolio assets}
+\centering
+\begin{tabular}[t]{ll}
+\toprule
+  & Portefeuille actif\\
+\midrule
+alpha\_a & 0.01500808\\
+beta\_a & 1.065074\\
+sigma(e\_a)² & 0.16 \%\\
+Return\_a & 2.34 \%\\
+Sigma\_a & 6.01 \%\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{verbatim}
+## [1] "L'allocation de richesse au portefeuille actif est :  239.31 %"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Assets }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"AAPL"}\NormalTok{, }\StringTok{"AMZN"}\NormalTok{, }\StringTok{"MSFT"}\NormalTok{, }\StringTok{"F"}\NormalTok{,  }\StringTok{"XOM"}\NormalTok{, }\StringTok{"MMM"}\NormalTok{,  }\StringTok{"HD"}\NormalTok{,   }\StringTok{"PG"}\NormalTok{,   }\StringTok{"KO"}\NormalTok{)}
+\NormalTok{plot.data }\OtherTok{\textless{}{-}}\NormalTok{ monthly.ret}\FloatTok{.2}\NormalTok{[, }\FunctionTok{c}\NormalTok{(Assets, }\StringTok{"Rf"}\NormalTok{)]}
+\ControlFlowTok{for}\NormalTok{(a }\ControlFlowTok{in}\NormalTok{ Assets) \{}
+\NormalTok{  plot.data[, a] }\OtherTok{\textless{}{-}}\NormalTok{ plot.data[, a] }\SpecialCharTok{{-}}\NormalTok{ plot.data}\SpecialCharTok{$}\NormalTok{Rf}
+\NormalTok{  \}}
+
+\NormalTok{res }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Mean=}\FunctionTok{apply}\NormalTok{(plot.data[, Assets],}\DecValTok{2}\NormalTok{,mean),}
+                  \AttributeTok{Sd =} \FunctionTok{apply}\NormalTok{(plot.data[, Assets],}\DecValTok{2}\NormalTok{,sd))}
+\FunctionTok{rownames}\NormalTok{(res) }\OtherTok{\textless{}{-}}\NormalTok{ Assets}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{TP-Treynor_files/figure-latex/unnamed-chunk-29-1.pdf}
 
 \end{document}

@@ -1,6 +1,6 @@
 ---
 title: "Gestion de Portefeuille"
-subtitle: "TP-41: Modèle de Treynor Black"
+subtitle: "TP-4: Modèle de Treynor Black"
 author: Paul Giraud , Kouamé YAO & Loïc Turounet
 date: "Version: `r format(Sys.Date(), '%d %b %Y')`"
 output:
@@ -128,10 +128,10 @@ C'est l'étape délicate de la méthode de Treynor-Black. A partir de l'évaluat
 En testant diverses combinaisons de titres à mettre dans le portefeuille actif, vous pourrez mesurer la sensibilité de modèle de Treynor-Black aux données.
 
 
-Ainsi, comme expliqué ci-dessus, les titres qui vont nous intéressés pour composer notre portefeuille d'actifs sont les titres avec des $\alpha > 0$ c'est-à-dire des titres sous-cotés. En effet, nous comptons sur le marché pour réguler cet écart et donc avoir un profit. Cependant, nous pouvons aussi profiter des actifs avec des $\alpha < 0$ (sur-évalué) et les shorter, toujours dans le but de faire une plus-value.
+Ainsi, comme expliqué ci-dessus, les titres qui vont nous intéresser pour composer notre portefeuille d'actifs sont les titres avec des $\alpha > 0$ c'est-à-dire des titres sous-cotés. En effet, nous comptons sur le marché pour réguler cet écart et donc avoir un profit. Cependant, nous pouvons aussi profiter des actifs avec des $\alpha < 0$ (sur-évalués) et les shorter, toujours dans le but de faire une plus-value.
 
 Nous allons donc composé notre portefeuille d'actifs dont les $\alpha$ sont différents de 0.
-Malheuresement, tous les actifs présents sur le marché (les 11 que nous étudions) ont un $\alpha$ différent de 0, nous allons donc choisir un deuxième critère de selection. 
+Malheureusement, tous les actifs présents sur le marché (les 11 que nous étudions) ont un $\alpha$ différent de 0, nous allons donc choisir un deuxième critère de sélection.
 
 Nous allons ensuite composer notre portefeuille d'actifs à notre portefeuille de marché, ainsi, nous allons vouloir choisir des actifs décorrélés du marché. Ainsi, sachant :
 
@@ -139,8 +139,7 @@ $$
 \beta_i = \frac{\sigma_{Mi}}{(\sigma_m)^2}
 $$
 
-Nous allons choisir des actifs décorrélés au marché, c'est-à-dire des actifs dont le $beta$ est le plus éloigné de 1. Voici la table qui présente les actifs selectionnés:
-
+Nous allons choisir des actifs décorrélés au marché, c'est-à-dire des actifs dont le $beta$ est le plus éloigné de 1. Voici la table qui présente les actifs sélectionnés :
 
 ```{r}
 chosen.assets <- c("KO", "HD", "XOM")
@@ -187,6 +186,17 @@ Calculez les valeurs suivantes concernant le portefeuille actif:
 \item[$\sigma^2(e_A)$] variance résiduelle du portefeuille actif
 \end{description}
 
+Sachant:
+
+$$
+\begin{aligned}
+R_A & = \alpha_A + \beta_A R_M \\
+\sigma^2_A & = \beta^2_A \sigma^2_M + \sigma^2(e_A)  \\
+\alpha_A &= \sum{w_{Ai}}*\alpha_i \\
+\beta_A &= \sum{w_{Ai}}*\beta_i \\
+\sigma^2(e_A) &= \sum{w_{Ai}^2}*\sigma^2(e_i)\\
+\end{aligned}
+$$
 
 ```{r}
 
@@ -208,13 +218,14 @@ df.portfolio<-data.frame(row.names = c("Portefeuille actif"))
 
 sigma.m <- sd(monthly.ret.2$SPY)
 ret.m <- colMeans(monthly.ret.2$SPY)
+monthly_ret.a <- apply(monthly.ret.2[,chosen.assets], 1, weighted.mean, df.portfolio.assets$weight)
 df.portfolio[,"alpha_a"] <- sum(df.portfolio.assets$weight*df.portfolio.assets$alpha)
 df.portfolio[,"beta_a"] <- sum(df.portfolio.assets$weight*df.portfolio.assets$beta)
 sigma.e.a <- sqrt(sum((df.portfolio.assets$weight^2)*df.portfolio.assets[chosen.assets,"sigma.e²"]))
 df.portfolio[,"sigma(e_a)²"] <- paste(as.character(round((sigma.e.a^2)*100, 2)), "%")
 retur.a <- df.portfolio$alpha_a  + df.portfolio$beta_a*ret.m
 df.portfolio[,"Return_a"]<- paste(as.character(round((retur.a )*100, 2)), "%")
-sigma.a <- sqrt((df.portfolio$beta_a * sigma.m)^2 + sigma.e.a )
+sigma.a <- sqrt((df.portfolio$beta_a * sigma.m)^2 + sigma.e.a^2 )
 df.portfolio[,"Sigma_a"]<-  paste(as.character(round((sigma.a )*100, 2)), "%")
 
 
@@ -269,9 +280,363 @@ res <- data.frame(Mean=apply(plot.data[, Assets],2,mean),
 rownames(res) <- Assets
 ```
 
-```{r, echo=TRUE}
-plot(Mean ~ Sd, data=res, xlim=c(0, 0.4), ylim=c(0, .05), xlab=expression(sigma),
-     ylab="Excess Return", cex=.5, bty="n", cex.lab=1)
-with(res, text(Mean ~ Sd, labels=row.names(res), pos=4, cex=0.7, col="blue"))
+```{r}
+mu <- colMeans(monthly.ret.2[,Assets]) * 12
+Sigma <- cov(monthly.ret.2[,Assets]) * 12 
+mu.star <- seq(from=0.04, to=0.35, length.out=200)
+mu.free <- mean(monthly.ret.2$Rf)
+sol <- NULL
+sol.with.rf<-NULL
+sharpe.max <- 0
+
+for(mu.s in mu.star) {
+
+A.sum <- matrix(rep(1,length(mu)), ncol=1)
+A.mat <- cbind(A.sum, mu, diag(length(mu)))
+b <- c(1, mu.s, rep(mu.free, length(mu)))
+qp <- solve.QP(2*Sigma, rep(0,length(mu)), A.mat, b, meq=2)
+sharpe <- (mu.s - mu.free) / sqrt(qp$value)
+if (sharpe > sharpe.max){
+  # tangent portfolio
+  w.tangent <- matrix(qp$solution / sum(qp$solution), ncol=1)
+  sharpe.max <- sharpe
+}
+tmp <- matrix(c(mu.s, sqrt(qp$value), sharpe, qp$solution), nrow=1)
+if(is.null(sol)) {
+  sol <- tmp  
+} else {
+  sol <- rbind(sol, tmp)
+}
+}
+
+for(mu.s in seq(from=0.09, to=1.2, length.out=200)){
+  tmp <- matrix(c(mu.s, (mu.s - mu.free)/sharpe.max , sharpe.max, (mu.s - mu.free)*w.tangent), nrow=1)
+  if(is.null(sol.with.rf)) {
+    sol.with.rf <- tmp  
+  } else {
+    sol.with.rf <- rbind(sol.with.rf, tmp)
+  }
+}
+dimnames(w.tangent)<- list(Assets)
+sigma.tangent <- sqrt(t(w.tangent) %*% Sigma %*% w.tangent)
+colnames(sol.with.rf) <- c("mu", "stdev", "Sharpe", Assets)
+colnames(sol) <- c("mu", "stdev", "Sharpe", Assets)
+```
+
+```{r, echo=FALSE, fig.height=6}
+plot(sol[,"stdev"], sol[,"mu"], type='l', col='red', lwd=2, 
+     xlab=expression(sigma), ylab="Excess Return",
+     ylim=c(0, 0.60), xlim=c(.0, 0.60), 
+     cex.lab=1.5, bty='n', main="Frontière de marché")
+
+lines(x = c(.0, 0.40), sharpe.max*c(.0, 0.40)+mu.free, 
+      type='l', col='green', lwd=2)
+
+for(i in seq_along(Assets)) {
+  text(sqrt(Sigma[i,i]), mu[i], Assets[i], cex=0.9, col="blue")
+}
+text(sqrt(0), mu.free, "Rf", cex=0.9, col="blue")
+
+
+monthly.ret.diff <- as.data.frame(monthly.ret.2$SPY)
+colnames(monthly.ret.diff) = "Marché"
+monthly.ret.diff$Actif <- monthly_ret.a
+monthly.ret.diff$Treynor <- w.a*monthly_ret.a+(1-w.a)*monthly.ret.2$SPY
+
+portfolios <- c("Marché", "Actif", "Treynor")
+portfolio.mu <- colMeans(monthly.ret.diff[,portfolios]) * 12
+portfolio.Sigma <- cov(monthly.ret.diff[,portfolios]) * 12 
+
+for(i in seq_along(portfolios)) {
+  text(sqrt(portfolio.Sigma[i,i]), portfolio.mu[i], portfolios[i], cex=0.9, col="red")
+}
 
 ```
+Nous pouvons donc voir que le portefeuille actif est très proche du portefeuille tangent, tout comme le portefeuille de Treynor. En effet, celui-ci est composé à 84% du portefeuille d'actifs et 16% du portefeuille de marché. Cependant, le portefeuille tangent reste optimal, car il procure un rendement plus élevé pour un même risque.
+
+
+## Test du modèle de Treynor-Black pour des actifs différents
+
+Ajoutons l'actif MMM:
+
+
+```{r}
+chosen.assets <- c("KO", "HD", "XOM", "MMM")
+df.portfolio.assets<-data.frame(row.names = chosen.assets)
+
+for (asset in chosen.assets){
+  df.portfolio.assets[asset,"alpha"] = df[1,][asset]
+  df.portfolio.assets[asset,"beta"] = df[2,][asset]
+}
+
+kable(t(df.portfolio.assets), "latex", booktabs=T, caption="Alpha and Beta for asset in portfolio assets") %>%
+kable_styling(latex_options=c("HOLD_position"))
+```
+```{r}
+
+for (asset in chosen.assets){
+  sigma.e <- sqrt(sd(monthly.ret.2[,asset])^2 - (df[2,][asset]*sd(monthly.ret.2$SPY))^2)
+  df.portfolio.assets[asset,"weight"] = df.portfolio.assets[asset,"alpha"]/sigma.e^2
+  df.portfolio.assets[asset,"sigma.e²"] = sigma.e^2
+}
+df.portfolio.assets$weight <- df.portfolio.assets$weight / sum(df.portfolio.assets$weight)
+
+kable(t(df.portfolio.assets), "latex", booktabs=T, caption="Alpha and Beta for asset in portfolio asset") %>%
+kable_styling(latex_options=c("HOLD_position"))
+```
+```{r}
+
+df.portfolio<-data.frame(row.names = c("Portefeuille actif"))
+
+sigma.m <- sd(monthly.ret.2$SPY)
+ret.m <- colMeans(monthly.ret.2$SPY)
+monthly_ret.a <- apply(monthly.ret.2[,chosen.assets], 1, weighted.mean, df.portfolio.assets$weight)
+df.portfolio[,"alpha_a"] <- sum(df.portfolio.assets$weight*df.portfolio.assets$alpha)
+df.portfolio[,"beta_a"] <- sum(df.portfolio.assets$weight*df.portfolio.assets$beta)
+sigma.e.a <- sqrt(sum((df.portfolio.assets$weight^2)*df.portfolio.assets[chosen.assets,"sigma.e²"]))
+df.portfolio[,"sigma(e_a)²"] <- paste(as.character(round((sigma.e.a^2)*100, 2)), "%")
+retur.a <- df.portfolio$alpha_a  + df.portfolio$beta_a*ret.m
+df.portfolio[,"Return_a"]<- paste(as.character(round((retur.a )*100, 2)), "%")
+sigma.a <- sqrt((df.portfolio$beta_a * sigma.m)^2 + sigma.e.a^2 )
+df.portfolio[,"Sigma_a"]<-  paste(as.character(round((sigma.a )*100, 2)), "%")
+
+
+kable(t(df.portfolio), "latex", booktabs=T, caption="Portfolio assets") %>%
+kable_styling(latex_options=c("HOLD_position"))
+```
+```{r}
+w.a = (df.portfolio$alpha_a*sigma.m^2)/((df.portfolio$alpha_a*sigma.m^2)*(1-df.portfolio$beta_a) + ret.m*sigma.e.a^2)
+
+print(paste("L'allocation de richesse au portefeuille actif est : ", round(w.a*100,2), "%"))
+```
+```{r, echo=TRUE}
+Assets <- c("AAPL", "AMZN", "MSFT", "F",  "XOM", "MMM",  "HD",   "PG",   "KO")
+plot.data <- monthly.ret.2[, c(Assets, "Rf")]
+for(a in Assets) {
+  plot.data[, a] <- plot.data[, a] - plot.data$Rf
+  }
+
+res <- data.frame(Mean=apply(plot.data[, Assets],2,mean),
+                  Sd = apply(plot.data[, Assets],2,sd))
+rownames(res) <- Assets
+```
+
+```{r}
+mu <- colMeans(monthly.ret.2[,Assets]) * 12
+Sigma <- cov(monthly.ret.2[,Assets]) * 12 
+mu.star <- seq(from=0.04, to=0.35, length.out=200)
+mu.free <- mean(monthly.ret.2$Rf)
+sol <- NULL
+sol.with.rf<-NULL
+sharpe.max <- 0
+
+for(mu.s in mu.star) {
+
+A.sum <- matrix(rep(1,length(mu)), ncol=1)
+A.mat <- cbind(A.sum, mu, diag(length(mu)))
+b <- c(1, mu.s, rep(mu.free, length(mu)))
+qp <- solve.QP(2*Sigma, rep(0,length(mu)), A.mat, b, meq=2)
+sharpe <- (mu.s - mu.free) / sqrt(qp$value)
+if (sharpe > sharpe.max){
+  # tangent portfolio
+  w.tangent <- matrix(qp$solution / sum(qp$solution), ncol=1)
+  sharpe.max <- sharpe
+}
+tmp <- matrix(c(mu.s, sqrt(qp$value), sharpe, qp$solution), nrow=1)
+if(is.null(sol)) {
+  sol <- tmp  
+} else {
+  sol <- rbind(sol, tmp)
+}
+}
+
+for(mu.s in seq(from=0.09, to=1.2, length.out=200)){
+  tmp <- matrix(c(mu.s, (mu.s - mu.free)/sharpe.max , sharpe.max, (mu.s - mu.free)*w.tangent), nrow=1)
+  if(is.null(sol.with.rf)) {
+    sol.with.rf <- tmp  
+  } else {
+    sol.with.rf <- rbind(sol.with.rf, tmp)
+  }
+}
+dimnames(w.tangent)<- list(Assets)
+sigma.tangent <- sqrt(t(w.tangent) %*% Sigma %*% w.tangent)
+colnames(sol.with.rf) <- c("mu", "stdev", "Sharpe", Assets)
+colnames(sol) <- c("mu", "stdev", "Sharpe", Assets)
+```
+
+```{r, echo=FALSE, fig.height=6}
+plot(sol[,"stdev"], sol[,"mu"], type='l', col='red', lwd=2, 
+     xlab=expression(sigma), ylab="Excess Return",
+     ylim=c(0, 0.60), xlim=c(.0, 0.60), 
+     cex.lab=1.5, bty='n', main="Frontière de marché")
+
+lines(x = c(.0, 0.40), sharpe.max*c(.0, 0.40)+mu.free, 
+      type='l', col='green', lwd=2)
+
+for(i in seq_along(Assets)) {
+  text(sqrt(Sigma[i,i]), mu[i], Assets[i], cex=0.9, col="blue")
+}
+text(sqrt(0), mu.free, "Rf", cex=0.9, col="blue")
+
+
+monthly.ret.diff <- as.data.frame(monthly.ret.2$SPY)
+colnames(monthly.ret.diff) = "Marché"
+monthly.ret.diff$Actif <- monthly_ret.a
+monthly.ret.diff$Treynor <- w.a*monthly_ret.a+(1-w.a)*monthly.ret.2$SPY
+
+portfolios <- c("Marché", "Actif", "Treynor")
+portfolio.mu <- colMeans(monthly.ret.diff[,portfolios]) * 12
+portfolio.Sigma <- cov(monthly.ret.diff[,portfolios]) * 12 
+
+for(i in seq_along(portfolios)) {
+  text(sqrt(portfolio.Sigma[i,i]), portfolio.mu[i], portfolios[i], cex=0.9, col="red")
+}
+
+```
+
+Ainsi, nous nous rapprochons du portefeuille tangent, cependant, plus nous allons rajouter de titre plus nous allons nous rapprocher du portefeuille de marché.
+
+Nous pouvons maintenan essayer de composer notre portefeuille d'actif seulement des actifs avec le plus grand $\alpha$ sans prendre en compte le $\beta$: 
+
+
+## Test du modèl de Treynor-Black pour les actifs ayants le plus grand alpha
+
+Ajoutons l'actif MMM:
+
+
+```{r}
+chosen.assets <- c("AAPL", "HD", "AMZN")
+df.portfolio.assets<-data.frame(row.names = chosen.assets)
+
+for (asset in chosen.assets){
+  df.portfolio.assets[asset,"alpha"] = df[1,][asset]
+  df.portfolio.assets[asset,"beta"] = df[2,][asset]
+}
+
+kable(t(df.portfolio.assets), "latex", booktabs=T, caption="Alpha and Beta for asset in portfolio assets") %>%
+kable_styling(latex_options=c("HOLD_position"))
+```
+```{r}
+
+for (asset in chosen.assets){
+  sigma.e <- sqrt(sd(monthly.ret.2[,asset])^2 - (df[2,][asset]*sd(monthly.ret.2$SPY))^2)
+  df.portfolio.assets[asset,"weight"] = df.portfolio.assets[asset,"alpha"]/sigma.e^2
+  df.portfolio.assets[asset,"sigma.e²"] = sigma.e^2
+}
+df.portfolio.assets$weight <- df.portfolio.assets$weight / sum(df.portfolio.assets$weight)
+
+kable(t(df.portfolio.assets), "latex", booktabs=T, caption="Alpha and Beta for asset in portfolio asset") %>%
+kable_styling(latex_options=c("HOLD_position"))
+```
+```{r}
+
+df.portfolio<-data.frame(row.names = c("Portefeuille actif"))
+
+sigma.m <- sd(monthly.ret.2$SPY)
+ret.m <- colMeans(monthly.ret.2$SPY)
+monthly_ret.a <- apply(monthly.ret.2[,chosen.assets], 1, weighted.mean, df.portfolio.assets$weight)
+df.portfolio[,"alpha_a"] <- sum(df.portfolio.assets$weight*df.portfolio.assets$alpha)
+df.portfolio[,"beta_a"] <- sum(df.portfolio.assets$weight*df.portfolio.assets$beta)
+sigma.e.a <- sqrt(sum((df.portfolio.assets$weight^2)*df.portfolio.assets[chosen.assets,"sigma.e²"]))
+df.portfolio[,"sigma(e_a)²"] <- paste(as.character(round((sigma.e.a^2)*100, 2)), "%")
+retur.a <- df.portfolio$alpha_a  + df.portfolio$beta_a*ret.m
+df.portfolio[,"Return_a"]<- paste(as.character(round((retur.a )*100, 2)), "%")
+sigma.a <- sqrt((df.portfolio$beta_a * sigma.m)^2 + sigma.e.a^2 )
+df.portfolio[,"Sigma_a"]<-  paste(as.character(round((sigma.a )*100, 2)), "%")
+
+
+kable(t(df.portfolio), "latex", booktabs=T, caption="Portfolio assets") %>%
+kable_styling(latex_options=c("HOLD_position"))
+```
+```{r}
+w.a = (df.portfolio$alpha_a*sigma.m^2)/((df.portfolio$alpha_a*sigma.m^2)*(1-df.portfolio$beta_a) + ret.m*sigma.e.a^2)
+
+print(paste("L'allocation de richesse au portefeuille actif est : ", round(w.a*100,2), "%"))
+```
+```{r, echo=TRUE}
+Assets <- c("AAPL", "AMZN", "MSFT", "F",  "XOM", "MMM",  "HD",   "PG",   "KO")
+plot.data <- monthly.ret.2[, c(Assets, "Rf")]
+for(a in Assets) {
+  plot.data[, a] <- plot.data[, a] - plot.data$Rf
+  }
+
+res <- data.frame(Mean=apply(plot.data[, Assets],2,mean),
+                  Sd = apply(plot.data[, Assets],2,sd))
+rownames(res) <- Assets
+```
+
+```{r}
+mu <- colMeans(monthly.ret.2[,Assets]) * 12
+Sigma <- cov(monthly.ret.2[,Assets]) * 12 
+mu.star <- seq(from=0.04, to=0.35, length.out=200)
+mu.free <- mean(monthly.ret.2$Rf)
+sol <- NULL
+sol.with.rf<-NULL
+sharpe.max <- 0
+
+for(mu.s in mu.star) {
+
+A.sum <- matrix(rep(1,length(mu)), ncol=1)
+A.mat <- cbind(A.sum, mu, diag(length(mu)))
+b <- c(1, mu.s, rep(mu.free, length(mu)))
+qp <- solve.QP(2*Sigma, rep(0,length(mu)), A.mat, b, meq=2)
+sharpe <- (mu.s - mu.free) / sqrt(qp$value)
+if (sharpe > sharpe.max){
+  # tangent portfolio
+  w.tangent <- matrix(qp$solution / sum(qp$solution), ncol=1)
+  sharpe.max <- sharpe
+}
+tmp <- matrix(c(mu.s, sqrt(qp$value), sharpe, qp$solution), nrow=1)
+if(is.null(sol)) {
+  sol <- tmp  
+} else {
+  sol <- rbind(sol, tmp)
+}
+}
+
+for(mu.s in seq(from=0.09, to=1.2, length.out=200)){
+  tmp <- matrix(c(mu.s, (mu.s - mu.free)/sharpe.max , sharpe.max, (mu.s - mu.free)*w.tangent), nrow=1)
+  if(is.null(sol.with.rf)) {
+    sol.with.rf <- tmp  
+  } else {
+    sol.with.rf <- rbind(sol.with.rf, tmp)
+  }
+}
+dimnames(w.tangent)<- list(Assets)
+sigma.tangent <- sqrt(t(w.tangent) %*% Sigma %*% w.tangent)
+colnames(sol.with.rf) <- c("mu", "stdev", "Sharpe", Assets)
+colnames(sol) <- c("mu", "stdev", "Sharpe", Assets)
+```
+
+```{r, echo=FALSE, fig.height=6}
+plot(sol[,"stdev"], sol[,"mu"], type='l', col='red', lwd=2, 
+     xlab=expression(sigma), ylab="Excess Return",
+     ylim=c(0, 0.60), xlim=c(.0, 0.60), 
+     cex.lab=1.5, bty='n', main="Frontière de marché")
+
+lines(x = c(.0, 0.40), sharpe.max*c(.0, 0.40)+mu.free, 
+      type='l', col='green', lwd=2)
+
+for(i in seq_along(Assets)) {
+  text(sqrt(Sigma[i,i]), mu[i], Assets[i], cex=0.9, col="blue")
+}
+text(sqrt(0), mu.free, "Rf", cex=0.9, col="blue")
+
+
+monthly.ret.diff <- as.data.frame(monthly.ret.2$SPY)
+colnames(monthly.ret.diff) = "Marché"
+monthly.ret.diff$Actif <- monthly_ret.a
+monthly.ret.diff$Treynor <- w.a*monthly_ret.a+(1-w.a)*monthly.ret.2$SPY
+
+portfolios <- c("Marché", "Actif", "Treynor")
+portfolio.mu <- colMeans(monthly.ret.diff[,portfolios]) * 12
+portfolio.Sigma <- cov(monthly.ret.diff[,portfolios]) * 12 
+
+for(i in seq_along(portfolios)) {
+  text(sqrt(portfolio.Sigma[i,i]), portfolio.mu[i], portfolios[i], cex=0.9, col="red")
+}
+
+```
+
+
+Dans ce cas nous nous retrouvons à avoir un grand rendement mais un grand risque, avec une su-exposition sur notre portefeuille actif et en short position sur le portefeuille de marché.
