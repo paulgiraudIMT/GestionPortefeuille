@@ -1,7 +1,7 @@
 ---
 title: "Gestion de Portefeuille"
 subtitle: "TP-41: Modèle de Treynor Black"
-author: Patrick Hénaff
+author: Paul Giraud , Kouamé YAO & Loïc Turounet
 date: "Version: `r format(Sys.Date(), '%d %b %Y')`"
 output:
   pdf_document:
@@ -13,8 +13,7 @@ geometry: margin=1in
 header-includes:
   - \usepackage[utf8]{inputenc}
 
-bibliography: ../../library.bib
-csl: ../../apa.csl
+
 ---
 
 ```{r setup, include=FALSE}
@@ -79,6 +78,45 @@ monthly.ret.2 <- merge.xts(monthly.ret, rf_rate, join="inner")
 plot(rf_rate)
 ```
 
+## Rappel du TP3:
+
+```{r, echo=F}
+names <- colnames(monthly.ret.2)
+df <- data.frame(setNames(rep(list(0), length(names)), names))
+number.assets = dim(monthly.ret.2)[2]
+
+ret.proxy.spy <- monthly.ret.2$SPY - monthly.ret.2$Rf
+for (i in 1:number.assets){
+  ret <- monthly.ret.2[,i] - monthly.ret.2$Rf
+  linear_model <- lm(ret ~ ret.proxy.spy)
+  df[1:2,i] <- linear_model$coefficients
+}
+row.names(df) <- c("alpha", "beta")
+```
+
+```{r, echo=F}
+kable(df, "latex", booktabs=T, caption="Alpha and Beta for each asset") %>%
+kable_styling(latex_options=c("scale_down", "HOLD_position"))
+```
+
+```{r}
+df.ret.beta <- data.frame(beta = t(df[2,]),
+                          return = t(df[2,]))
+ret.mean <- colMeans(monthly.ret.2$SPY) - colMeans(monthly.ret.2$Rf)
+df.ret.beta$return <- t(df[1,])+ ret.mean*t(df[2,])
+market.line <- lm(df.ret.beta$return ~ df.ret.beta$beta)
+
+plot(df.ret.beta$beta,df.ret.beta$return,bty="no", pch=1, col="black", xlab=expression(beta),
+     ylab=expression(E(r)))
+
+abline(market.line$coefficients[1], market.line$coefficients[2], col="red")
+for(i in seq_along(names)) {
+  text(df.ret.beta$beta[i], df.ret.beta$return[i], names[i], cex=1.2, col="blue")
+}
+```
+
+
+
 # Modèle de Treynor-Black
 
 Le modèle de Treynor-Black a pour objectif d'exploiter les informations calculées en première partie. L'idée étant de constituer un portefeuille "actif" avec les titres qui semblent mal valorisés par le marché, et allouer le reste de sa richesse au portefeuille de marché.
@@ -88,6 +126,45 @@ Le modèle de Treynor-Black a pour objectif d'exploiter les informations calcul�
 C'est l'étape délicate de la méthode de Treynor-Black. A partir de l'évaluation d'un modèle à un facteur, déterminez quels titres méritent de figurer dans le portefeuille actif. En théorie, on a envie d'acheter les titres sous-cotés ($\alpha_i > 0$) mais cette anomalie n'est peut être qu'apparente! Il faut également apprécier la qualité de l'estimation statistique.
 
 En testant diverses combinaisons de titres à mettre dans le portefeuille actif, vous pourrez mesurer la sensibilité de modèle de Treynor-Black aux données.
+
+
+Ainsi, comme expliqué ci-dessus, les titres qui vont nous intéressés pour composer notre portefeuille d'actifs sont les titres avec des $\alpha > 0$ c'est-à-dire des titres sous-cotés. En effet, nous comptons sur le marché pour réguler cet écart et donc avoir un profit. Cependant, nous pouvons aussi profiter des actifs avec des $\alpha < 0$ (sur-évalué) et les shorter, toujours dans le but de faire une plus-value.
+
+Nous allons donc composé notre portefeuille d'actifs dont les $\alpha$ sont différents de 0.
+Malheuresement, tous les actifs présents sur le marché (les 11 que nous étudions) ont un $\alpha$ différent de 0, nous allons donc choisir un deuxième critère de selection. 
+
+Nous allons ensuite composer notre portefeuille d'actifs à notre portefeuille de marché, ainsi, nous allons vouloir choisir des actifs décorrélés du marché. Ainsi, sachant :
+
+$$
+\beta_i = \frac{\sigma_{Mi}}{(\sigma_m)^2}
+$$
+
+Nous allons choisir des actifs décorrélés au marché, c'est-à-dire des actifs dont le $beta$ est le plus éloigné de 1. Voici la table qui présente les actifs selectionnés:
+
+
+```{r}
+chosen.assets <- c("KO", "HD", "XOM")
+df.portfolio.assets<-data.frame(row.names = chosen.assets)
+
+for (asset in chosen.assets){
+  df.portfolio.assets[asset,"alpha"] = df[1,][asset]
+  df.portfolio.assets[asset,"beta"] = df[2,][asset]
+}
+
+kable(t(df.portfolio.assets), "latex", booktabs=T, caption="Alpha and Beta for asset in portfolio assets") %>%
+kable_styling(latex_options=c("HOLD_position"))
+```
+
+
+
+
+
+
+
+
+
+
+
 
 ## Détermination du portefeuille actif
 
@@ -109,6 +186,38 @@ Calculez les valeurs suivantes concernant le portefeuille actif:
 \item[$\sigma_A$] ecart-type du portefeuille actif
 \item[$\sigma^2(e_A)$] variance résiduelle du portefeuille actif
 \end{description}
+
+
+```{r}
+
+for (asset in chosen.assets){
+  sigma.e <- sqrt(sd(monthly.ret.2[,asset])^2 - (df[2,][asset]*sd(monthly.ret.2$SPY))^2)
+  df.portfolio.assets[asset,"weight"] = df.portfolio.assets[asset,"alpha"]/sigma.e^2
+  df.portfolio.assets[asset,"sigma.e²"] = sigma.e^2
+}
+df.portfolio.assets$weight <- df.portfolio.assets$weight / sum(df.portfolio.assets$weight)
+
+kable(t(df.portfolio.assets), "latex", booktabs=T, caption="Alpha and Beta for asset in portfolio assets") %>%
+kable_styling(latex_options=c("HOLD_position"))
+```
+
+
+```{r}
+
+df.portfolio<-data.frame(row.names = c("Portefeuille d'Actifs"))
+
+ret.m <- sum(colMeans(monthly.ret.2[,chosen.assets])*t(df.portfolio.assets$weight)) - colMeans(monthly.ret.2$Rf)
+
+df.portfolio$alpha.active <- sum(df.portfolio.assets$weight*df.portfolio.assets$alpha)
+df.portfolio$beta.active <- sum(df.portfolio.assets$weight*df.portfolio.assets$beta)
+df.portfolio$sigma.active.e <- sum((df.portfolio.assets$weight^2)*df.portfolio.assets[chosen.assets,"sigma.e²"])
+ret.active <- df.portfolio$alpha.active  + df.portfolio$beta.active*ret.m
+
+
+kable(t(df.portfolio), "latex", booktabs=T, caption="Portfolio assets") %>%
+kable_styling(latex_options=c("HOLD_position"))
+```
+
 
 
 ## Détermination de la pondération entre le portefeuille actif et le portefeuille de marché.
