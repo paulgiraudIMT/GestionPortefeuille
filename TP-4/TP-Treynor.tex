@@ -368,7 +368,7 @@ Calculez les valeurs suivantes concernant le portefeuille actif:
 
 \begin{table}[H]
 
-\caption{\label{tab:unnamed-chunk-10}Alpha and Beta for asset in portfolio assets}
+\caption{\label{tab:unnamed-chunk-10}Alpha and Beta for asset in portfolio asset}
 \centering
 \begin{tabular}[t]{lrrr}
 \toprule
@@ -384,15 +384,17 @@ sigma.e² & 0.0015006 & 0.0024247 & 0.0016176\\
 
 \begin{table}[H]
 
-\caption{\label{tab:unnamed-chunk-11}Alpha and Beta for asset in portfolio assets}
+\caption{\label{tab:unnamed-chunk-11}Portfolio assets}
 \centering
-\begin{tabular}[t]{lr}
+\begin{tabular}[t]{ll}
 \toprule
-  & Portefeuille d'Actifs\\
+  & Portefeuille actif\\
 \midrule
-alpha.active & 0.0104450\\
-beta.active & 0.6859825\\
-sigma.active.e & 0.0020283\\
+alpha\_a & 0.01044498\\
+beta\_a & 0.6859825\\
+sigma(e\_a)² & 0.2 \%\\
+Return\_a & 1.58 \%\\
+Sigma\_a & 21.42 \%\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -416,6 +418,10 @@ R_A & = \alpha_A + \beta_A R_M \\
 \sigma^2_A & = \beta^2_A \sigma^2_M + \sigma^2(e_A)
 \end{aligned}
 \]
+
+\begin{verbatim}
+## [1] "L'allocation de richesse au portefeuille actif est :  84.71 %"
+\end{verbatim}
 
 \hypertarget{capital-allocation-line}{%
 \subsection{Capital Allocation Line}\label{capital-allocation-line}}
@@ -448,6 +454,6 @@ graphique ci-dessous.
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{TP-Treynor_files/figure-latex/unnamed-chunk-13-1.pdf}
+\includegraphics{TP-Treynor_files/figure-latex/unnamed-chunk-14-1.pdf}
 
 \end{document}

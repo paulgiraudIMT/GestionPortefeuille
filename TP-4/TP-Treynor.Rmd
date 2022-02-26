@@ -197,21 +197,25 @@ for (asset in chosen.assets){
 }
 df.portfolio.assets$weight <- df.portfolio.assets$weight / sum(df.portfolio.assets$weight)
 
-kable(t(df.portfolio.assets), "latex", booktabs=T, caption="Alpha and Beta for asset in portfolio assets") %>%
+kable(t(df.portfolio.assets), "latex", booktabs=T, caption="Alpha and Beta for asset in portfolio asset") %>%
 kable_styling(latex_options=c("HOLD_position"))
 ```
 
 
 ```{r}
 
-df.portfolio<-data.frame(row.names = c("Portefeuille d'Actifs"))
+df.portfolio<-data.frame(row.names = c("Portefeuille actif"))
 
-ret.m <- sum(colMeans(monthly.ret.2[,chosen.assets])*t(df.portfolio.assets$weight)) - colMeans(monthly.ret.2$Rf)
-
-df.portfolio$alpha.active <- sum(df.portfolio.assets$weight*df.portfolio.assets$alpha)
-df.portfolio$beta.active <- sum(df.portfolio.assets$weight*df.portfolio.assets$beta)
-df.portfolio$sigma.active.e <- sum((df.portfolio.assets$weight^2)*df.portfolio.assets[chosen.assets,"sigma.e²"])
-ret.active <- df.portfolio$alpha.active  + df.portfolio$beta.active*ret.m
+sigma.m <- sd(monthly.ret.2$SPY)
+ret.m <- colMeans(monthly.ret.2$SPY)
+df.portfolio[,"alpha_a"] <- sum(df.portfolio.assets$weight*df.portfolio.assets$alpha)
+df.portfolio[,"beta_a"] <- sum(df.portfolio.assets$weight*df.portfolio.assets$beta)
+sigma.e.a <- sqrt(sum((df.portfolio.assets$weight^2)*df.portfolio.assets[chosen.assets,"sigma.e²"]))
+df.portfolio[,"sigma(e_a)²"] <- paste(as.character(round((sigma.e.a^2)*100, 2)), "%")
+retur.a <- df.portfolio$alpha_a  + df.portfolio$beta_a*ret.m
+df.portfolio[,"Return_a"]<- paste(as.character(round((retur.a )*100, 2)), "%")
+sigma.a <- sqrt((df.portfolio$beta_a * sigma.m)^2 + sigma.e.a )
+df.portfolio[,"Sigma_a"]<-  paste(as.character(round((sigma.a )*100, 2)), "%")
 
 
 kable(t(df.portfolio), "latex", booktabs=T, caption="Portfolio assets") %>%
@@ -236,6 +240,15 @@ R_A & = \alpha_A + \beta_A R_M \\
 \sigma^2_A & = \beta^2_A \sigma^2_M + \sigma^2(e_A)
 \end{aligned}
 $$
+
+
+
+```{r}
+w.a = (df.portfolio$alpha_a*sigma.m^2)/((df.portfolio$alpha_a*sigma.m^2)*(1-df.portfolio$beta_a) + ret.m*sigma.e.a^2)
+
+print(paste("L'allocation de richesse au portefeuille actif est : ", round(w.a*100,2), "%"))
+```
+
 
 
 
