@@ -48,22 +48,22 @@ On charge les séries de rendements pour l'indice et les composants de l'indice.
 
 ```{r, get-data, warning=FALSE, echo=TRUE}
 
-  ts.all <- get.all.ts('CAC40', tickers=NULL, returns = TRUE,
-    dt.start = dmy('01Jul2007'), combine = T)
-  
-  # bad data for Valeo
-  ts.all <- ts.all[,-17]
-  
-  # keep good data window
-  ts.all <- window(ts.all, dmy('01Jul2007'), 
-                   dmy('01Jan2009'))
-  
-  # merge with cac40 index
-  cac.index <- get.ts('fchi', 'CAC40')
+ts.all <- get.all.ts('CAC40', tickers=NULL, returns = TRUE,
+  dt.start = dmy('01Jul2007'), combine = T)
 
-  cac.ret <- returns(cac.index)
-  names(cac.ret) <- 'CAC40'
-  ts.all <- removeNA(cbind(ts.all, cac.ret))
+# bad data for Valeo
+ts.all <- ts.all[,-17]
+
+# keep good data window
+ts.all <- window(ts.all, dmy('01Jul2007'), 
+                 dmy('01Jan2009'))
+
+# merge with cac40 index
+cac.index <- get.ts('fchi', 'CAC40')
+
+cac.ret <- returns(cac.index)
+names(cac.ret) <- 'CAC40'
+ts.all <- removeNA(cbind(ts.all, cac.ret))
 ```
 
 
@@ -107,8 +107,8 @@ plot(ts.index, main='Rendement hebdomadaire de l\'indice CAC40')
 + Calculer la matrice de corrélation des actions de l\'indice. 
 
 ```{r, correl-matrix, echo=TRUE, fig.height=6}
-cor.stocks = cor(ts.stocks)
-corrplot(cor.stocks, type="upper", cl.pos = "r", tl.pos = "lt", 
+assets.cor = cor(ts.stocks)
+corrplot(assets.cor, type="upper", cl.pos = "r", tl.pos = "lt", 
          tl.cex = 0.5, title= "Matrice de Corrélation des composants de l\'indice CAC 40", mar=c(0,0,1,0))
 ```
 
@@ -119,35 +119,36 @@ Justifier ces observations en considérant la nature des entreprises.
 + On considera que les actions sont fortement corrélées lorsque la corrélation entre les deux actifs est supérieure à 0,7. 
 
 ```{r, correl-forte, echo=TRUE, fig.height=2}
-threshold <- 0.7
+min <- 0.7
 highCorr <- data.frame(Ticker1=character(0), 
                        Ticker2=character(0), 
                        Correlation=numeric(0), 
                        stringsAsFactors=FALSE)
-temp.cor.stocks <- cor.stocks
-diag(temp.cor.stocks) <- 0
-while (sum(temp.cor.stocks>threshold)>1) {
-  maxval <- max(temp.cor.stocks)
-  max <- which(temp.cor.stocks==maxval, arr.ind=TRUE)[1,]
+temp.assets.cor <- assets.cor
+diag(temp.assets.cor) <- 0
+while (sum(temp.assets.cor>min)>1) {
+  maxval <- max(temp.assets.cor)
+  max <- which(temp.assets.cor==maxval, arr.ind=TRUE)[1,]
   highCorr <- rbind(highCorr, data.frame(
-    Ticker1=rownames(temp.cor.stocks)[max[1]], 
-    Ticker2=colnames(temp.cor.stocks)[max[2]], 
+    Ticker1=rownames(temp.assets.cor)[max[1]], 
+    Ticker2=colnames(temp.assets.cor)[max[2]], 
     Correlation=maxval))
-  temp.cor.stocks[max[1],] <- 0
-  temp.cor.stocks[,max[1]] <- 0
-  temp.cor.stocks[max[2],] <- 0
-  temp.cor.stocks[,max[2]] <- 0
+  temp.assets.cor[max[1],] <- 0
+  temp.assets.cor[,max[1]] <- 0
+  temp.assets.cor[max[2],] <- 0
+  temp.assets.cor[,max[2]] <- 0
 }
 
 caption <- paste("CAC40 corrélation forte (supérieure à ", 
-                 toString(threshold),")")
+                 toString(min),")")
 knitr::kable(highCorr, 
              col.names=c("Ticker1", "Ticker2", "Corrélation"), 
              caption=caption,
              digits=2, booktab=TRUE, row.names=FALSE)
 ```
 ### Table 1 - Forte corrélation
-# On remarque que les fortes corrélations sont justifiées par l'appartenance à un même secteur économique: 
+On remarque que les fortes corrélations sont justifiées par l'appartenance à un même secteur économique: 
+
 + GLE (Société Générale), ACA (Credit Agricole) sont deux compagnies du même secteur (banques françaises)
 + SGO (Cie de Saint-Gobain), KER (Kering) matérieux de construction et luxe
 + MT (ArcelorMittal), ALO (Alstom) sidérurgie et transports ferroviaires
@@ -159,31 +160,32 @@ knitr::kable(highCorr,
 ### Recherche des titres négativement corrélés
 
 ```{r, correl-faible, echo=TRUE, fig.height=2}
-threshold <- -0.05
+max <- -0.05
 lowCorr <- data.frame(v1=character(0), v2=character(0), cor=numeric(0), 
                       stringsAsFactors=FALSE)
-temp.cor.stocks <- cor.stocks
-diag(temp.cor.stocks) <- 0
-while (sum(temp.cor.stocks<threshold)>1) {
-  minval <- min(temp.cor.stocks)
-  min <- which(temp.cor.stocks==minval, arr.ind=TRUE)[1,]
-  lowCorr <- rbind(lowCorr, data.frame(v1=rownames(temp.cor.stocks)[min[1]], 
-                                       v2=colnames(temp.cor.stocks)[min[2]], 
+temp.assets.cor <- assets.cor
+diag(temp.assets.cor) <- 0
+while (sum(temp.assets.cor<max)>1) {
+  minval <- min(temp.assets.cor)
+  min <- which(temp.assets.cor==minval, arr.ind=TRUE)[1,]
+  lowCorr <- rbind(lowCorr, data.frame(v1=rownames(temp.assets.cor)[min[1]], 
+                                       v2=colnames(temp.assets.cor)[min[2]], 
                                        cor=minval))
-  temp.cor.stocks[min[1],] <- 0
-  temp.cor.stocks[,min[1]] <- 0
-  temp.cor.stocks[min[2],] <- 0
-  temp.cor.stocks[,min[2]] <- 0
+  temp.assets.cor[min[1],] <- 0
+  temp.assets.cor[,min[1]] <- 0
+  temp.assets.cor[min[2],] <- 0
+  temp.assets.cor[,min[2]] <- 0
 }
 
-caption <- paste("CAC40 Faible corrélation (inférieure à  ", toString(threshold),")")
+caption <- paste("CAC40 Faible corrélation (inférieure à  ", toString(max),")")
 knitr::kable(lowCorr,
              col.names=c("Ticker1", "Ticker2", "Corrélation"), 
              caption=caption,
              digits=2, booktab=TRUE, row.names=FALSE)
 ```
 ### Table 2 - Corrélation négative
-# Par opposition, les corrélations faibles se justifient lorsque les entreprises ne sont pas en général du même domaine d'activité.
+ Par opposition, les corrélations faibles se justifient lorsque les entreprises ne sont pas en général du même domaine d'activité.
+ 
  + EI (EssilorLuxottica), BNP (BNP Paribas) 
  + SAN (Sanofi), MT (ArcelorMittal)
  + ORA (Orange), LG (Lafargue)
@@ -197,19 +199,19 @@ knitr::kable(lowCorr,
 epsilon <- 0.05
 lowCorr <- data.frame(v1=character(0), v2=character(0), cor=numeric(0), 
                       stringsAsFactors=FALSE)
-temp.cor.stocks <- cor.stocks
-diag(temp.cor.stocks) <- 100
-while (sum(abs(temp.cor.stocks)<epsilon)>1) {
-  minval <- min(abs(temp.cor.stocks))
-  min <- which(abs(temp.cor.stocks)==minval, arr.ind=TRUE)[1,]
-  val <- temp.cor.stocks[min[1],min[2]]
-  lowCorr <- rbind(lowCorr, data.frame(v1=rownames(temp.cor.stocks)[min[1]], 
-                                       v2=colnames(temp.cor.stocks)[min[2]], 
+temp.assets.cor <- assets.cor
+diag(temp.assets.cor) <- 100
+while (sum(abs(temp.assets.cor)<epsilon)>1) {
+  minval <- min(abs(temp.assets.cor))
+  min <- which(abs(temp.assets.cor)==minval, arr.ind=TRUE)[1,]
+  val <- temp.assets.cor[min[1],min[2]]
+  lowCorr <- rbind(lowCorr, data.frame(v1=rownames(temp.assets.cor)[min[1]], 
+                                       v2=colnames(temp.assets.cor)[min[2]], 
                                        cor=val))
-  temp.cor.stocks[min[1],] <- 100
-  temp.cor.stocks[,min[1]] <- 100
-  temp.cor.stocks[min[2],] <- 100
-  temp.cor.stocks[,min[2]] <- 100
+  temp.assets.cor[min[1],] <- 100
+  temp.assets.cor[,min[1]] <- 100
+  temp.assets.cor[min[2],] <- 100
+  temp.assets.cor[,min[2]] <- 100
 
 }
 
@@ -231,9 +233,8 @@ Commenter les résultats obtenus.
 ```{r, correl-roll, echo=TRUE}
 StocksLevel <- as.zoo(ts.stocks)[ , c("bnp.pa","ei.pa","san.pa")]
 rollc <- function(x) {
-dim <- ncol(x)
-rcor <- cor(x)[lower.tri(diag(dim) , diag = FALSE)]
-return(rcor)
+  rcor <- cor(x)[lower.tri(diag(ncol(x)) , diag = FALSE)]
+  return(rcor)
 }
 rcor <- rollapply(StocksLevel , width = 5 , rollc, align = "right", 
                   by.column = FALSE)

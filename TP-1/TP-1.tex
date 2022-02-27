@@ -127,7 +127,7 @@
 \makeatother
 \subtitle{TP-1: Analyse du CAC40}
 \author{Paul Giraud , Kouamé YAO \& Loïc Turounet}
-\date{Version: 26 fév 2022}
+\date{Version: 27 fév 2022}
 
 \begin{document}
 \maketitle
@@ -162,22 +162,22 @@ l'indice.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{  ts.all }\OtherTok{\textless{}{-}} \FunctionTok{get.all.ts}\NormalTok{(}\StringTok{\textquotesingle{}CAC40\textquotesingle{}}\NormalTok{, }\AttributeTok{tickers=}\ConstantTok{NULL}\NormalTok{, }\AttributeTok{returns =} \ConstantTok{TRUE}\NormalTok{,}
-    \AttributeTok{dt.start =} \FunctionTok{dmy}\NormalTok{(}\StringTok{\textquotesingle{}01Jul2007\textquotesingle{}}\NormalTok{), }\AttributeTok{combine =}\NormalTok{ T)}
-  
-  \CommentTok{\# bad data for Valeo}
-\NormalTok{  ts.all }\OtherTok{\textless{}{-}}\NormalTok{ ts.all[,}\SpecialCharTok{{-}}\DecValTok{17}\NormalTok{]}
-  
-  \CommentTok{\# keep good data window}
-\NormalTok{  ts.all }\OtherTok{\textless{}{-}} \FunctionTok{window}\NormalTok{(ts.all, }\FunctionTok{dmy}\NormalTok{(}\StringTok{\textquotesingle{}01Jul2007\textquotesingle{}}\NormalTok{), }
-                   \FunctionTok{dmy}\NormalTok{(}\StringTok{\textquotesingle{}01Jan2009\textquotesingle{}}\NormalTok{))}
-  
-  \CommentTok{\# merge with cac40 index}
-\NormalTok{  cac.index }\OtherTok{\textless{}{-}} \FunctionTok{get.ts}\NormalTok{(}\StringTok{\textquotesingle{}fchi\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}CAC40\textquotesingle{}}\NormalTok{)}
+\NormalTok{ts.all }\OtherTok{\textless{}{-}} \FunctionTok{get.all.ts}\NormalTok{(}\StringTok{\textquotesingle{}CAC40\textquotesingle{}}\NormalTok{, }\AttributeTok{tickers=}\ConstantTok{NULL}\NormalTok{, }\AttributeTok{returns =} \ConstantTok{TRUE}\NormalTok{,}
+  \AttributeTok{dt.start =} \FunctionTok{dmy}\NormalTok{(}\StringTok{\textquotesingle{}01Jul2007\textquotesingle{}}\NormalTok{), }\AttributeTok{combine =}\NormalTok{ T)}
 
-\NormalTok{  cac.ret }\OtherTok{\textless{}{-}} \FunctionTok{returns}\NormalTok{(cac.index)}
-  \FunctionTok{names}\NormalTok{(cac.ret) }\OtherTok{\textless{}{-}} \StringTok{\textquotesingle{}CAC40\textquotesingle{}}
-\NormalTok{  ts.all }\OtherTok{\textless{}{-}} \FunctionTok{removeNA}\NormalTok{(}\FunctionTok{cbind}\NormalTok{(ts.all, cac.ret))}
+\CommentTok{\# bad data for Valeo}
+\NormalTok{ts.all }\OtherTok{\textless{}{-}}\NormalTok{ ts.all[,}\SpecialCharTok{{-}}\DecValTok{17}\NormalTok{]}
+
+\CommentTok{\# keep good data window}
+\NormalTok{ts.all }\OtherTok{\textless{}{-}} \FunctionTok{window}\NormalTok{(ts.all, }\FunctionTok{dmy}\NormalTok{(}\StringTok{\textquotesingle{}01Jul2007\textquotesingle{}}\NormalTok{), }
+                 \FunctionTok{dmy}\NormalTok{(}\StringTok{\textquotesingle{}01Jan2009\textquotesingle{}}\NormalTok{))}
+
+\CommentTok{\# merge with cac40 index}
+\NormalTok{cac.index }\OtherTok{\textless{}{-}} \FunctionTok{get.ts}\NormalTok{(}\StringTok{\textquotesingle{}fchi\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}CAC40\textquotesingle{}}\NormalTok{)}
+
+\NormalTok{cac.ret }\OtherTok{\textless{}{-}} \FunctionTok{returns}\NormalTok{(cac.index)}
+\FunctionTok{names}\NormalTok{(cac.ret) }\OtherTok{\textless{}{-}} \StringTok{\textquotesingle{}CAC40\textquotesingle{}}
+\NormalTok{ts.all }\OtherTok{\textless{}{-}} \FunctionTok{removeNA}\NormalTok{(}\FunctionTok{cbind}\NormalTok{(ts.all, cac.ret))}
 \end{Highlighting}
 \end{Shaded}
 
@@ -238,8 +238,8 @@ Finalement, on calcule les rendements hebdomadaires:
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{cor.stocks }\OtherTok{=} \FunctionTok{cor}\NormalTok{(ts.stocks)}
-\FunctionTok{corrplot}\NormalTok{(cor.stocks, }\AttributeTok{type=}\StringTok{"upper"}\NormalTok{, }\AttributeTok{cl.pos =} \StringTok{"r"}\NormalTok{, }\AttributeTok{tl.pos =} \StringTok{"lt"}\NormalTok{, }
+\NormalTok{assets.cor }\OtherTok{=} \FunctionTok{cor}\NormalTok{(ts.stocks)}
+\FunctionTok{corrplot}\NormalTok{(assets.cor, }\AttributeTok{type=}\StringTok{"upper"}\NormalTok{, }\AttributeTok{cl.pos =} \StringTok{"r"}\NormalTok{, }\AttributeTok{tl.pos =} \StringTok{"lt"}\NormalTok{, }
          \AttributeTok{tl.cex =} \FloatTok{0.5}\NormalTok{, }\AttributeTok{title=} \StringTok{"Matrice de Corrélation des composants de l}\SpecialCharTok{\textbackslash{}\textquotesingle{}}\StringTok{indice CAC 40"}\NormalTok{, }\AttributeTok{mar=}\FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{0}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{))}
 \end{Highlighting}
 \end{Shaded}
@@ -267,28 +267,28 @@ corrélés}\label{recherche-des-titres-fortement-corruxe9luxe9s}}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{threshold }\OtherTok{\textless{}{-}} \FloatTok{0.7}
+\NormalTok{min }\OtherTok{\textless{}{-}} \FloatTok{0.7}
 \NormalTok{highCorr }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Ticker1=}\FunctionTok{character}\NormalTok{(}\DecValTok{0}\NormalTok{), }
                        \AttributeTok{Ticker2=}\FunctionTok{character}\NormalTok{(}\DecValTok{0}\NormalTok{), }
                        \AttributeTok{Correlation=}\FunctionTok{numeric}\NormalTok{(}\DecValTok{0}\NormalTok{), }
                        \AttributeTok{stringsAsFactors=}\ConstantTok{FALSE}\NormalTok{)}
-\NormalTok{temp.cor.stocks }\OtherTok{\textless{}{-}}\NormalTok{ cor.stocks}
-\FunctionTok{diag}\NormalTok{(temp.cor.stocks) }\OtherTok{\textless{}{-}} \DecValTok{0}
-\ControlFlowTok{while}\NormalTok{ (}\FunctionTok{sum}\NormalTok{(temp.cor.stocks}\SpecialCharTok{\textgreater{}}\NormalTok{threshold)}\SpecialCharTok{\textgreater{}}\DecValTok{1}\NormalTok{) \{}
-\NormalTok{  maxval }\OtherTok{\textless{}{-}} \FunctionTok{max}\NormalTok{(temp.cor.stocks)}
-\NormalTok{  max }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(temp.cor.stocks}\SpecialCharTok{==}\NormalTok{maxval, }\AttributeTok{arr.ind=}\ConstantTok{TRUE}\NormalTok{)[}\DecValTok{1}\NormalTok{,]}
+\NormalTok{temp.assets.cor }\OtherTok{\textless{}{-}}\NormalTok{ assets.cor}
+\FunctionTok{diag}\NormalTok{(temp.assets.cor) }\OtherTok{\textless{}{-}} \DecValTok{0}
+\ControlFlowTok{while}\NormalTok{ (}\FunctionTok{sum}\NormalTok{(temp.assets.cor}\SpecialCharTok{\textgreater{}}\NormalTok{min)}\SpecialCharTok{\textgreater{}}\DecValTok{1}\NormalTok{) \{}
+\NormalTok{  maxval }\OtherTok{\textless{}{-}} \FunctionTok{max}\NormalTok{(temp.assets.cor)}
+\NormalTok{  max }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(temp.assets.cor}\SpecialCharTok{==}\NormalTok{maxval, }\AttributeTok{arr.ind=}\ConstantTok{TRUE}\NormalTok{)[}\DecValTok{1}\NormalTok{,]}
 \NormalTok{  highCorr }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(highCorr, }\FunctionTok{data.frame}\NormalTok{(}
-    \AttributeTok{Ticker1=}\FunctionTok{rownames}\NormalTok{(temp.cor.stocks)[max[}\DecValTok{1}\NormalTok{]], }
-    \AttributeTok{Ticker2=}\FunctionTok{colnames}\NormalTok{(temp.cor.stocks)[max[}\DecValTok{2}\NormalTok{]], }
+    \AttributeTok{Ticker1=}\FunctionTok{rownames}\NormalTok{(temp.assets.cor)[max[}\DecValTok{1}\NormalTok{]], }
+    \AttributeTok{Ticker2=}\FunctionTok{colnames}\NormalTok{(temp.assets.cor)[max[}\DecValTok{2}\NormalTok{]], }
     \AttributeTok{Correlation=}\NormalTok{maxval))}
-\NormalTok{  temp.cor.stocks[max[}\DecValTok{1}\NormalTok{],] }\OtherTok{\textless{}{-}} \DecValTok{0}
-\NormalTok{  temp.cor.stocks[,max[}\DecValTok{1}\NormalTok{]] }\OtherTok{\textless{}{-}} \DecValTok{0}
-\NormalTok{  temp.cor.stocks[max[}\DecValTok{2}\NormalTok{],] }\OtherTok{\textless{}{-}} \DecValTok{0}
-\NormalTok{  temp.cor.stocks[,max[}\DecValTok{2}\NormalTok{]] }\OtherTok{\textless{}{-}} \DecValTok{0}
+\NormalTok{  temp.assets.cor[max[}\DecValTok{1}\NormalTok{],] }\OtherTok{\textless{}{-}} \DecValTok{0}
+\NormalTok{  temp.assets.cor[,max[}\DecValTok{1}\NormalTok{]] }\OtherTok{\textless{}{-}} \DecValTok{0}
+\NormalTok{  temp.assets.cor[max[}\DecValTok{2}\NormalTok{],] }\OtherTok{\textless{}{-}} \DecValTok{0}
+\NormalTok{  temp.assets.cor[,max[}\DecValTok{2}\NormalTok{]] }\OtherTok{\textless{}{-}} \DecValTok{0}
 \NormalTok{\}}
 
 \NormalTok{caption }\OtherTok{\textless{}{-}} \FunctionTok{paste}\NormalTok{(}\StringTok{"CAC40 corrélation forte (supérieure à "}\NormalTok{, }
-                 \FunctionTok{toString}\NormalTok{(threshold),}\StringTok{")"}\NormalTok{)}
+                 \FunctionTok{toString}\NormalTok{(min),}\StringTok{")"}\NormalTok{)}
 \NormalTok{knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(highCorr, }
              \AttributeTok{col.names=}\FunctionTok{c}\NormalTok{(}\StringTok{"Ticker1"}\NormalTok{, }\StringTok{"Ticker2"}\NormalTok{, }\StringTok{"Corrélation"}\NormalTok{), }
              \AttributeTok{caption=}\NormalTok{caption,}
@@ -320,10 +320,8 @@ mc.pa & lr.pa & 0.71\tabularnewline
 \subsubsection{Table 1 - Forte
 corrélation}\label{table-1---forte-corruxe9lation}}
 
-\hypertarget{on-remarque-que-les-fortes-corruxe9lations-sont-justifiuxe9es-par-lappartenance-uxe0-un-muxeame-secteur-uxe9conomique}{%
-\section{On remarque que les fortes corrélations sont justifiées par
-l'appartenance à un même secteur
-économique:}\label{on-remarque-que-les-fortes-corruxe9lations-sont-justifiuxe9es-par-lappartenance-uxe0-un-muxeame-secteur-uxe9conomique}}
+On remarque que les fortes corrélations sont justifiées par
+l'appartenance à un même secteur économique:
 
 \begin{itemize}
 \tightlist
@@ -353,24 +351,24 @@ corrélés}\label{recherche-des-titres-nuxe9gativement-corruxe9luxe9s}}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{threshold }\OtherTok{\textless{}{-}} \SpecialCharTok{{-}}\FloatTok{0.05}
+\NormalTok{max }\OtherTok{\textless{}{-}} \SpecialCharTok{{-}}\FloatTok{0.05}
 \NormalTok{lowCorr }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{v1=}\FunctionTok{character}\NormalTok{(}\DecValTok{0}\NormalTok{), }\AttributeTok{v2=}\FunctionTok{character}\NormalTok{(}\DecValTok{0}\NormalTok{), }\AttributeTok{cor=}\FunctionTok{numeric}\NormalTok{(}\DecValTok{0}\NormalTok{), }
                       \AttributeTok{stringsAsFactors=}\ConstantTok{FALSE}\NormalTok{)}
-\NormalTok{temp.cor.stocks }\OtherTok{\textless{}{-}}\NormalTok{ cor.stocks}
-\FunctionTok{diag}\NormalTok{(temp.cor.stocks) }\OtherTok{\textless{}{-}} \DecValTok{0}
-\ControlFlowTok{while}\NormalTok{ (}\FunctionTok{sum}\NormalTok{(temp.cor.stocks}\SpecialCharTok{\textless{}}\NormalTok{threshold)}\SpecialCharTok{\textgreater{}}\DecValTok{1}\NormalTok{) \{}
-\NormalTok{  minval }\OtherTok{\textless{}{-}} \FunctionTok{min}\NormalTok{(temp.cor.stocks)}
-\NormalTok{  min }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(temp.cor.stocks}\SpecialCharTok{==}\NormalTok{minval, }\AttributeTok{arr.ind=}\ConstantTok{TRUE}\NormalTok{)[}\DecValTok{1}\NormalTok{,]}
-\NormalTok{  lowCorr }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(lowCorr, }\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{v1=}\FunctionTok{rownames}\NormalTok{(temp.cor.stocks)[min[}\DecValTok{1}\NormalTok{]], }
-                                       \AttributeTok{v2=}\FunctionTok{colnames}\NormalTok{(temp.cor.stocks)[min[}\DecValTok{2}\NormalTok{]], }
+\NormalTok{temp.assets.cor }\OtherTok{\textless{}{-}}\NormalTok{ assets.cor}
+\FunctionTok{diag}\NormalTok{(temp.assets.cor) }\OtherTok{\textless{}{-}} \DecValTok{0}
+\ControlFlowTok{while}\NormalTok{ (}\FunctionTok{sum}\NormalTok{(temp.assets.cor}\SpecialCharTok{\textless{}}\NormalTok{max)}\SpecialCharTok{\textgreater{}}\DecValTok{1}\NormalTok{) \{}
+\NormalTok{  minval }\OtherTok{\textless{}{-}} \FunctionTok{min}\NormalTok{(temp.assets.cor)}
+\NormalTok{  min }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(temp.assets.cor}\SpecialCharTok{==}\NormalTok{minval, }\AttributeTok{arr.ind=}\ConstantTok{TRUE}\NormalTok{)[}\DecValTok{1}\NormalTok{,]}
+\NormalTok{  lowCorr }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(lowCorr, }\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{v1=}\FunctionTok{rownames}\NormalTok{(temp.assets.cor)[min[}\DecValTok{1}\NormalTok{]], }
+                                       \AttributeTok{v2=}\FunctionTok{colnames}\NormalTok{(temp.assets.cor)[min[}\DecValTok{2}\NormalTok{]], }
                                        \AttributeTok{cor=}\NormalTok{minval))}
-\NormalTok{  temp.cor.stocks[min[}\DecValTok{1}\NormalTok{],] }\OtherTok{\textless{}{-}} \DecValTok{0}
-\NormalTok{  temp.cor.stocks[,min[}\DecValTok{1}\NormalTok{]] }\OtherTok{\textless{}{-}} \DecValTok{0}
-\NormalTok{  temp.cor.stocks[min[}\DecValTok{2}\NormalTok{],] }\OtherTok{\textless{}{-}} \DecValTok{0}
-\NormalTok{  temp.cor.stocks[,min[}\DecValTok{2}\NormalTok{]] }\OtherTok{\textless{}{-}} \DecValTok{0}
+\NormalTok{  temp.assets.cor[min[}\DecValTok{1}\NormalTok{],] }\OtherTok{\textless{}{-}} \DecValTok{0}
+\NormalTok{  temp.assets.cor[,min[}\DecValTok{1}\NormalTok{]] }\OtherTok{\textless{}{-}} \DecValTok{0}
+\NormalTok{  temp.assets.cor[min[}\DecValTok{2}\NormalTok{],] }\OtherTok{\textless{}{-}} \DecValTok{0}
+\NormalTok{  temp.assets.cor[,min[}\DecValTok{2}\NormalTok{]] }\OtherTok{\textless{}{-}} \DecValTok{0}
 \NormalTok{\}}
 
-\NormalTok{caption }\OtherTok{\textless{}{-}} \FunctionTok{paste}\NormalTok{(}\StringTok{"CAC40 Faible corrélation (inférieure à  "}\NormalTok{, }\FunctionTok{toString}\NormalTok{(threshold),}\StringTok{")"}\NormalTok{)}
+\NormalTok{caption }\OtherTok{\textless{}{-}} \FunctionTok{paste}\NormalTok{(}\StringTok{"CAC40 Faible corrélation (inférieure à  "}\NormalTok{, }\FunctionTok{toString}\NormalTok{(max),}\StringTok{")"}\NormalTok{)}
 \NormalTok{knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(lowCorr,}
              \AttributeTok{col.names=}\FunctionTok{c}\NormalTok{(}\StringTok{"Ticker1"}\NormalTok{, }\StringTok{"Ticker2"}\NormalTok{, }\StringTok{"Corrélation"}\NormalTok{), }
              \AttributeTok{caption=}\NormalTok{caption,}
@@ -401,10 +399,8 @@ saf.pa & bn.pa & -0.06\tabularnewline
 \subsubsection{Table 2 - Corrélation
 négative}\label{table-2---corruxe9lation-nuxe9gative}}
 
-\hypertarget{par-opposition-les-corruxe9lations-faibles-se-justifient-lorsque-les-entreprises-ne-sont-pas-en-guxe9nuxe9ral-du-muxeame-domaine-dactivituxe9.}{%
-\section{Par opposition, les corrélations faibles se justifient lorsque
-les entreprises ne sont pas en général du même domaine
-d'activité.}\label{par-opposition-les-corruxe9lations-faibles-se-justifient-lorsque-les-entreprises-ne-sont-pas-en-guxe9nuxe9ral-du-muxeame-domaine-dactivituxe9.}}
+Par opposition, les corrélations faibles se justifient lorsque les
+entreprises ne sont pas en général du même domaine d'activité.
 
 \begin{itemize}
 \tightlist
@@ -427,19 +423,19 @@ d'activité.}\label{par-opposition-les-corruxe9lations-faibles-se-justifient-lor
 \NormalTok{epsilon }\OtherTok{\textless{}{-}} \FloatTok{0.05}
 \NormalTok{lowCorr }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{v1=}\FunctionTok{character}\NormalTok{(}\DecValTok{0}\NormalTok{), }\AttributeTok{v2=}\FunctionTok{character}\NormalTok{(}\DecValTok{0}\NormalTok{), }\AttributeTok{cor=}\FunctionTok{numeric}\NormalTok{(}\DecValTok{0}\NormalTok{), }
                       \AttributeTok{stringsAsFactors=}\ConstantTok{FALSE}\NormalTok{)}
-\NormalTok{temp.cor.stocks }\OtherTok{\textless{}{-}}\NormalTok{ cor.stocks}
-\FunctionTok{diag}\NormalTok{(temp.cor.stocks) }\OtherTok{\textless{}{-}} \DecValTok{100}
-\ControlFlowTok{while}\NormalTok{ (}\FunctionTok{sum}\NormalTok{(}\FunctionTok{abs}\NormalTok{(temp.cor.stocks)}\SpecialCharTok{\textless{}}\NormalTok{epsilon)}\SpecialCharTok{\textgreater{}}\DecValTok{1}\NormalTok{) \{}
-\NormalTok{  minval }\OtherTok{\textless{}{-}} \FunctionTok{min}\NormalTok{(}\FunctionTok{abs}\NormalTok{(temp.cor.stocks))}
-\NormalTok{  min }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(}\FunctionTok{abs}\NormalTok{(temp.cor.stocks)}\SpecialCharTok{==}\NormalTok{minval, }\AttributeTok{arr.ind=}\ConstantTok{TRUE}\NormalTok{)[}\DecValTok{1}\NormalTok{,]}
-\NormalTok{  val }\OtherTok{\textless{}{-}}\NormalTok{ temp.cor.stocks[min[}\DecValTok{1}\NormalTok{],min[}\DecValTok{2}\NormalTok{]]}
-\NormalTok{  lowCorr }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(lowCorr, }\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{v1=}\FunctionTok{rownames}\NormalTok{(temp.cor.stocks)[min[}\DecValTok{1}\NormalTok{]], }
-                                       \AttributeTok{v2=}\FunctionTok{colnames}\NormalTok{(temp.cor.stocks)[min[}\DecValTok{2}\NormalTok{]], }
+\NormalTok{temp.assets.cor }\OtherTok{\textless{}{-}}\NormalTok{ assets.cor}
+\FunctionTok{diag}\NormalTok{(temp.assets.cor) }\OtherTok{\textless{}{-}} \DecValTok{100}
+\ControlFlowTok{while}\NormalTok{ (}\FunctionTok{sum}\NormalTok{(}\FunctionTok{abs}\NormalTok{(temp.assets.cor)}\SpecialCharTok{\textless{}}\NormalTok{epsilon)}\SpecialCharTok{\textgreater{}}\DecValTok{1}\NormalTok{) \{}
+\NormalTok{  minval }\OtherTok{\textless{}{-}} \FunctionTok{min}\NormalTok{(}\FunctionTok{abs}\NormalTok{(temp.assets.cor))}
+\NormalTok{  min }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(}\FunctionTok{abs}\NormalTok{(temp.assets.cor)}\SpecialCharTok{==}\NormalTok{minval, }\AttributeTok{arr.ind=}\ConstantTok{TRUE}\NormalTok{)[}\DecValTok{1}\NormalTok{,]}
+\NormalTok{  val }\OtherTok{\textless{}{-}}\NormalTok{ temp.assets.cor[min[}\DecValTok{1}\NormalTok{],min[}\DecValTok{2}\NormalTok{]]}
+\NormalTok{  lowCorr }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(lowCorr, }\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{v1=}\FunctionTok{rownames}\NormalTok{(temp.assets.cor)[min[}\DecValTok{1}\NormalTok{]], }
+                                       \AttributeTok{v2=}\FunctionTok{colnames}\NormalTok{(temp.assets.cor)[min[}\DecValTok{2}\NormalTok{]], }
                                        \AttributeTok{cor=}\NormalTok{val))}
-\NormalTok{  temp.cor.stocks[min[}\DecValTok{1}\NormalTok{],] }\OtherTok{\textless{}{-}} \DecValTok{100}
-\NormalTok{  temp.cor.stocks[,min[}\DecValTok{1}\NormalTok{]] }\OtherTok{\textless{}{-}} \DecValTok{100}
-\NormalTok{  temp.cor.stocks[min[}\DecValTok{2}\NormalTok{],] }\OtherTok{\textless{}{-}} \DecValTok{100}
-\NormalTok{  temp.cor.stocks[,min[}\DecValTok{2}\NormalTok{]] }\OtherTok{\textless{}{-}} \DecValTok{100}
+\NormalTok{  temp.assets.cor[min[}\DecValTok{1}\NormalTok{],] }\OtherTok{\textless{}{-}} \DecValTok{100}
+\NormalTok{  temp.assets.cor[,min[}\DecValTok{1}\NormalTok{]] }\OtherTok{\textless{}{-}} \DecValTok{100}
+\NormalTok{  temp.assets.cor[min[}\DecValTok{2}\NormalTok{],] }\OtherTok{\textless{}{-}} \DecValTok{100}
+\NormalTok{  temp.assets.cor[,min[}\DecValTok{2}\NormalTok{]] }\OtherTok{\textless{}{-}} \DecValTok{100}
 
 \NormalTok{\}}
 
@@ -486,9 +482,8 @@ indépendentes}\label{table-3---actions-induxe9pendentes}}
 \begin{Highlighting}[]
 \NormalTok{StocksLevel }\OtherTok{\textless{}{-}} \FunctionTok{as.zoo}\NormalTok{(ts.stocks)[ , }\FunctionTok{c}\NormalTok{(}\StringTok{"bnp.pa"}\NormalTok{,}\StringTok{"ei.pa"}\NormalTok{,}\StringTok{"san.pa"}\NormalTok{)]}
 \NormalTok{rollc }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(x) \{}
-\NormalTok{dim }\OtherTok{\textless{}{-}} \FunctionTok{ncol}\NormalTok{(x)}
-\NormalTok{rcor }\OtherTok{\textless{}{-}} \FunctionTok{cor}\NormalTok{(x)[}\FunctionTok{lower.tri}\NormalTok{(}\FunctionTok{diag}\NormalTok{(dim) , }\AttributeTok{diag =} \ConstantTok{FALSE}\NormalTok{)]}
-\FunctionTok{return}\NormalTok{(rcor)}
+\NormalTok{  rcor }\OtherTok{\textless{}{-}} \FunctionTok{cor}\NormalTok{(x)[}\FunctionTok{lower.tri}\NormalTok{(}\FunctionTok{diag}\NormalTok{(}\FunctionTok{ncol}\NormalTok{(x)) , }\AttributeTok{diag =} \ConstantTok{FALSE}\NormalTok{)]}
+  \FunctionTok{return}\NormalTok{(rcor)}
 \NormalTok{\}}
 \NormalTok{rcor }\OtherTok{\textless{}{-}} \FunctionTok{rollapply}\NormalTok{(StocksLevel , }\AttributeTok{width =} \DecValTok{5}\NormalTok{ , rollc, }\AttributeTok{align =} \StringTok{"right"}\NormalTok{, }
                   \AttributeTok{by.column =} \ConstantTok{FALSE}\NormalTok{)}
