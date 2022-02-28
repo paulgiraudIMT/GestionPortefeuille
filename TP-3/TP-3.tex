@@ -128,28 +128,10 @@
 \makeatother
 \subtitle{TP-3: Modèle à un facteur}
 \author{Paul Giraud , Kouamé YAO \& Loïc Turounet}
-\date{Version: 26 fév 2022}
+\date{Version: 28 fév 2022}
 
 \begin{document}
 \maketitle
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\FunctionTok{library}\NormalTok{(xts)}
-\FunctionTok{library}\NormalTok{(hornpa)}
-\FunctionTok{library}\NormalTok{(lubridate)}
-\FunctionTok{library}\NormalTok{(xtable)}
-\FunctionTok{library}\NormalTok{(PerformanceAnalytics)}
-\FunctionTok{library}\NormalTok{(TTR)}
-\FunctionTok{library}\NormalTok{(lubridate)}
-\FunctionTok{library}\NormalTok{(roll)}
-\FunctionTok{library}\NormalTok{(Hmisc)}
-\FunctionTok{library}\NormalTok{(nFactors)}
-\FunctionTok{library}\NormalTok{(kableExtra)}
-\FunctionTok{library}\NormalTok{(broom)}
-\FunctionTok{library}\NormalTok{(quadprog)}
-\end{Highlighting}
-\end{Shaded}
 
 \hypertarget{donnuxe9es}{%
 \section{Données}\label{donnuxe9es}}
@@ -315,6 +297,10 @@ beta & 1.1948376 & 1.1465481 & 1.0148488 & 1.8508513 & 1 & 1.0959372 & 0.6751296
 \end{tabular}}
 \end{table}
 
+HEAD Nous obtenons bien \(\alpha = 0\) et \(\beta = 1\) pour SPY car
+c'est cet indice que nous utilisons comme proxy pour le marché
+(\(R_{M}\)).
+
 Ainsi, nous pouvons observer d'après la Table 2, que le alpha du SPY est
 nul et que son beta est égale à 1. Cela nous permet de valider nos
 calculs de alpha et beta, en effet, le SPY a été choisi comme proxy pour
@@ -332,19 +318,60 @@ le marché.
 
 \includegraphics{TP-3_files/figure-latex/unnamed-chunk-8-1.pdf}
 
-Résultats :
-
 \begin{itemize}
-\tightlist
 \item
+  Les actifs AMZN et AAPL ont des \(\beta\) significativement supérieurs
+  à 1. Cela signifie que qu'ils évoluent dans la même direction que le
+  marché mais que leurs variations sont plus importante. Un marché
+  haussier implique une forte hausse du cours AMZN et AAPL. Au
+  contraire, un marché baissier implique une forte baisse. Ces deux
+  actifs ont des rendements espérés très au-dessus de la droite de
+  marché des titres risqués ce qui indique qu'AMZN et AAPL sont donc
+  largement sous-évalués.
 \item
+  Un autre actif avec un \(\beta\) supérieur à 1, dans une bien plus
+  grande mesure qu'AMZN et AAPL, est l'action Ford (F). Ainsi, cet actif
+  connaît des variations de même sens que le marché mais avec des
+  amplitudes bien plus grandes. Cependant, l'excès de rendement associé
+  à cet actif est très négatif (en comparant le rendement de F et la
+  droite de marché), son rendement est très inférieur au rendement
+  attendu pour un tel risque. L'action Ford est donc très largement
+  sur-évaluée.
 \item
+  De même, les actifs MMM et XOM sont sur-évalués, selon ce modèle, car
+  situés sous la droite de marché des titres risqués, à une distance
+  significative de celle-ci. Même l'indice SPY est considéré comme
+  sur-côté selon ce modèle. Il ne se trouve pas sur la droite car cette
+  droite a été construite par régression linéaire à partir de seulement
+  11 valeurs et sans prendre en considération les poids différents de
+  chaque actif (ces poids étant pris en compte dans la valorisation du
+  rendement de l'indice).
 \item
+  Enfin, selon cette droite de marché des titres risqués, les actions
+  HD, MSFT, KO, PG et QQQ sont presque correctement évaluées (les
+  actions HD, MSFT et KO sont légèrement sous-évaluées et QQQ et PG sont
+  légèrement sur-évaluées). Cependant, les actions KO et PG ont un
+  \(\beta \approx 0.5\) alors que les actions MSFT, HD et QQQ ont un
+  \(\beta \approx 1\). Cela signifie que toutes varient dans le même
+  sens que le marché mais que l'amplitude de variation du cours des
+  premières est moins importante que celle des deuxièmes qui varient
+  dans les mêmes proportions que le marché.
 \item
-\item
-\item
-\item
-\item
+  Pour résumer:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    les titres AMZN et AAPL sont très sous-évalués
+  \item
+    les titres MSFT, HD et KO sont légèrement sous-évalués, presque
+    correctement évaluées
+  \item
+    les titres PG et QQQ sont légèrement sur-évalués, presque
+    correctement évaluées
+  \item
+    les titres F, XOM et MMM semblent très sur-évalués
+  \end{itemize}
 \end{itemize}
 
 Est-ce que ces mesures de cherté relative vous semble correctes? Essayez
@@ -352,5 +379,42 @@ de mesurer la robustesse de ce calcul en estimant le modèles sur des
 sous-intervalles de temps.
 
 Présentez vos résultats de manière synthétique.
+
+\begin{itemize}
+\item
+  Comme nous évaluons la cherté des titres par rapport à une droite
+  tracée par régression sur seulement 11 titres, cette cherté peut être
+  remise en question. En effet, par exemple, par rapport à la droite, on
+  peut considérer que l'action QQQ est trop chère (elle est située sous
+  la droite de marché des titres risqués) alors que le calcul de son
+  alpha (lors de la régression entre les rendements QQQ et les
+  rendements du marché) est positif, ce qui montrerait que l'action
+  serait peu chère.
+\item
+  Enfin, il est possible de remettre en cause la robustesse de notre
+  estimation de la cherté des titres en modifiant la durée sur laquelle
+  la droite de marché des titres risqués est calculée. En effet, elle
+  était jusqu'à présent calculée sur 157 mois de données. En la
+  calculant sur seulement 5 ans puis sur 2 ans, nous obtenons des
+  résultats différents.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Sur 5 ans de données, on relève que le titre AAPL est beaucoup moins
+    sous-évalué (car beaucoup plus proche de la droite de marché des
+    titres risqués) alors que le titre MSFT est beaucoup plus sous-côté.
+  \item
+    Sur 2 ans de données, on remarque que le marché est quasiment situé
+    sur la droite, ce qui correspond à un modèle plus ``sensé''. Le
+    titre MSFT est à nouveau très sous-évalué. Les titres PG et QQQ sont
+    désormais sur-évalués alors que sous-évalués lors de l'approche
+    initiale.
+  \end{itemize}
+\item
+  Ainsi, la cherté de certains titres est très changeante suivant la
+  plage de temps de données choisie. Nous pouvons en conclure que cette
+  estimation de la cherté des titres n'est pas robuste.
+\end{itemize}
 
 \end{document}
