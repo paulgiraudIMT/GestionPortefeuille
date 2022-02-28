@@ -109,7 +109,7 @@ kable(df, "latex", booktabs=T, caption="Alpha and Beta for each asset") %>%
 kable_styling(latex_options=c("scale_down", "HOLD_position"))
 ```
 
-HEAD
+
 Nous obtenons bien $\alpha = 0$ et $\beta = 1$ pour SPY car c'est cet indice que nous utilisons comme proxy pour le marché ($R_{M}$).
 
 
