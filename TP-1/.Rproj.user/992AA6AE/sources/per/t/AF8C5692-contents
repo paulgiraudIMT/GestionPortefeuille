@@ -1,0 +1,361 @@
+---
+title: "Gestion de Portefeuille"
+subtitle: "TP-3: Modèle à un facteur et modèle de Treynor Black"
+author: Berthoumieu Aymeric, Kingne Jéhoiakim et Jallouli Mouad
+date: "Février-Mars 2020"
+output: 
+  pdf_document:
+    keep_tex: true
+    fig_caption: yes
+    latex_engine: pdflatex
+geometry: margin=1in
+
+header-includes:
+  - \usepackage[utf8]{inputenc}
+
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+```
+
+```{r load-libraries, include=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
+library(xts)
+library(hornpa)
+library(lubridate)
+library(xtable)
+library(PerformanceAnalytics)
+library(TTR)
+library(lubridate)
+library(roll)
+library(Hmisc)
+library(nFactors)
+library(kableExtra)
+#library(broom)
+library(quadprog)
+library(ggplot2)
+```
+
+# Données
+
+## Séries de rendement mensuel pour 11 valeurs:
+
+```{r, eval=TRUE, echo=TRUE, warning=FALSE}
+monthly.ret.file <- "./monthly.ret.rda"
+load(monthly.ret.file)
+index(monthly.ret) <- floor_date(index(monthly.ret), "month")
+```
+
+## Matrice de covariance des rendements:
+
+```{r, echo=TRUE}
+kable(cov(monthly.ret), booktabs=T) %>%
+kable_styling(latex_options=c("scale_down", "HOLD_position"))
+```
+
+## Rendement moyen mensuel
+
+```{r, echo=TRUE}
+kable(t(colMeans(monthly.ret)), booktabs=T,  
+      caption="Rendement moyen mensuel") %>%
+kable_styling(latex_options=c("scale_down","HOLD_position"))
+```
+
+## Taux sans risque
+
+Le taux sans risque mensuel est obtenu de la Réserve Fédérale US. A diviser par 12 pour être cohérent avec les rendement des titres.
+
+```{r, echo=TRUE}
+tmp <- read.csv("DP_LIVE_01032020211755676.csv", header=TRUE, sep=";")[, c("TIME", "Value")]
+dt <- ymd(paste(tmp$TIME, "-01", sep=""))
+rf_rate <- xts((tmp$Value/100.0)/12, dt)
+colnames(rf_rate) <- "Rf"
+monthly.ret.2 <- merge.xts(monthly.ret, rf_rate, join="inner")
+```
+```{r, fig.cap="taux sans risque mensuel"}
+plot(rf_rate)
+```
+
+# Estimation d'un modèle à un facteur
+
+- Utiliser l'indice SPY comme proxy pour le marché et estimer pour chaque titre le modèle:
+
+$$
+R_i(t) - R_f(t) = \alpha + \beta (R_M(t) - R_f(t)) + \epsilon(t)
+$$
+en utilisant la fonction \texttt{lm}.
+- Placer chaque titre sur un diagramme rendement/beta et calculer par regression la droite de marché des titres risqués. 
+- En déduire les titres qui, selon ce modèle, *semblent* chers et ceux qui semblent sous-évalués. 
+
+Est-ce que ces mesures de cherté relative vous semblent correctes? Essayez de mesurer la robustesse de ce calcul en estimant le modèles sur des sous-intervalles de temps.
+
+Présentez vos résultats de manière synthétique.
+
+
+```{r}
+starting.month <- 1 #dim(monthly.ret.2)[1]-24
+ending.month <- dim(monthly.ret.2)[1]
+monthly.ret.3 <- monthly.ret.2[starting.month:ending.month,]
+
+names <- colnames(monthly.ret.3)
+df <- data.frame(setNames(rep(list(NA), length(names)), names))
+
+refrence_ret <- monthly.ret.3$SPY - monthly.ret.3$Rf
+for (i in 1:dim(monthly.ret.3)[2]){
+  current_values <- monthly.ret.3[,i] - monthly.ret.3$Rf
+  linear_model <- lm(current_values ~ refrence_ret)
+  df[1:2,i] <- linear_model$coefficients
+}
+row.names(df) <- c("alpha", "beta")
+```
+
+```{r, echo=TRUE}
+kable(df, booktabs=T, caption="Alpha and beta by asset") %>%
+    kable_styling(latex_options=c("scale_down","HOLD_position"))
+```
+On remarque que SPY a bien un alpha de 0 et un beta de 1 ce qui est attendu puisqu'il est pris comme référence (assimilé au marché).
+
+```{r}
+df2<-as.data.frame(x=t(df[2,]))
+coef_dir <- colMeans(monthly.ret.3$SPY) - colMeans(monthly.ret.3$Rf)
+df2$y <- t(df[1,])+ coef_dir*t(df[2,])
+names(df2)[1] <- "x"
+asset_line <- lm(df2$y ~ df2$x)
+
+plot(df2$x,df2$y,bty="no", pch=1, col="black", xlab=expression(beta),
+     ylab=expression(E(r)))
+
+abline(a=asset_line$coefficients[1], b=asset_line$coefficients[2], col="red")
+for(i in seq_along(names)) {
+  text(df2$x[i], df2$y[i], names[i], cex=1.2, pos=4, col="blue")
+}
+```
+
+
+
+
+
+
+
+- Il est intéressant de remarquer que le SnP500 n'est pas sur la droite de marchés des titres. Cela est dû au fait que ce soit une régression équipondérée sur les quelques titres proposés ici. Si nous voulions l'intégrer à la droite, il faudrait prendre tous les titres de l'indice et faire une régression pondérée par les poids de l'indice.
+
+- Comme prévu, les actions AMZN, AAPL ont des betas bien supérieurs à 1: ils sont très corrélés au SPY mais ils sont aussi très volatile. Elles peuvent surperformer le SPY dans un bullish market, mais en contrepartie leur perte serait aussi plus importante dans le cas d'un bearish market. Cette capacité à surperformer se reflète aussi sur leurs alphas respectifs qui sont postifs et plus importants par rapport au reste. Des actions comme MSFT, QQQ et MMM sont raisonnablement corrélés (beta ~1) avec le marché SPY: elles suivent les tendances du marché mais d'une manière moins volatile.
+
+- Una action comme Ford (F) a également un beta bien supérieur à 1, elle est donc très volatile et susceptible de surperformer le marché. Cependant, on voit qu'elle a un alpha négatif très faible: contrairement aux attentes elle a sousperformer historiquement le marché. Un investissement dans cette action a généré un rendement qui n'a pas compensé le risque de volatilité assumé, donc elle devrait être surévaluée.
+
+- Donc des actions comme AMZN, AAPL rajoutent plus de volatilité à un portefeuille mais un potentiel de gain plus important aussi. Des actions comme KO et PG qui sont moins corrélés (faible beta < 1) au marché sont aussi moins volatile et les rajouter à notre portefeuille le rend moins risqué mais ça réduit aussi le potentiel du gain.
+
+- Ainsi, en première approche, des titres comme AAPL, AMZN, KO, HD et MSFT semblent sous-cotés (suivant différtentes proportions), et cela, de manière très forte pour les deux premiers. A l'inverse, XOM, F, MMM et même SPY (le marché) semblent trop chers.
+
+- Cependant, d'après les tests statistiques de la fonction lm, les $\alpha$ de KO, MSFT pour les sous-côtés et de XOM, F, MMM, SPY pour les sur-côtés ne sont pas significatifs.
+
+- De plus, si l'on se concentre seulement sur les deux dernières années ( fixant starting.mont à dim(monthly.ret.2)[1]-24), les $\alpha$ de AAPL et de AMZN sont aussi non significatifs.
+
+
+# Modèle de Treynor-Black
+
+Le modèle de Treynor-Black a pour objectif d'exploiter les informations calculées en première partie. L'idée étant de constituer un portefeuille "actif" avec les titres qui semblent mal valorisés par le marché, et allouer le reste de sa richesse au portefeuille de marché.
+
+## Selection des titres à inclure dans le portefeuille actif.
+
+C'est l'étape délicate de la méthode de Treynor-Black. A partir de l'évaluation du modèle à un facteur, déterminez quels titres méritent de figurer dans le portefeuille actif. En théorie, on a envie d'acheter les titres sous-cotés ($\alpha_i > 0$) mais cette anomalie n'est peut être qu'apparente! Il faut également apprécier la qualité de l'estimation statistique. 
+
+En testant diverses combinaisons de titres à mettre dans le portefeuille actif, vous pourrez mesurer la sensibilité de modèle de Treynor-Black aux données.
+
+## Détermination du portefeuille actif
+
+Ayant choisi les titres à inclure dans le portefeuille actif,
+on rappelle que le poids de chaque titre dans le portefeuille actif est proportionnel au ratio $\alpha_i/\sigma^2(\epsilon_i)$:
+
+$$
+w_i = \frac{\alpha_i/\sigma^2(\epsilon_i)}{\sum_i \alpha_i/\sigma^2(\epsilon_i)}
+$$
+
+Calculer les poids des actifs dans le portefeuille actif. Justifier votre choix d'inclure ou d'exclure tel ou tel instrument.
+
+Calculez les valeurs suivantes concernant le portefeuille actif:
+
+\begin{description}
+\item[$R_A$] Excess de rendement
+\item[$\alpha_A$] alpha du portefeuille actif
+\item[$\beta_A$]  beta du portefeuille actif
+\item[$\sigma_A$] ecart-type du portefeuille actif
+\item[$\sigma^2(e_A)$] variance résiduelle du portefeuille actif
+
+\end{description}
+
+### Commentaire sur le choix des actifs
+On choisit des titre pas trop risqués ($\beta$ < 1) avec des $\alpha$ différents de 0 afin d'arbitrer les miss-pricing du marché.
+
+```{r}
+assets <- c("KO", "HD", "XOM")
+df3<-data.frame(row.names = assets)
+
+for (asset in assets){
+  residual.sigma <- sqrt(sd(monthly.ret.3[,asset])^2 - (df[2,][asset]*sd(monthly.ret.3$SPY))^2)
+  alpha <- df[1,][asset]
+  df3[asset,"weight"] = alpha/(residual.sigma^2)
+  df3[asset,"specific risk²"] = residual.sigma^2
+}
+
+normalizer <- sum(df3$weight)
+df3$weight_n <- df3$weight / normalizer
+
+df3t <- df3
+df3t[,"beta"] = t(df[2,assets])
+df3t[,"alpha"] = t(df[1,assets])
+kbl(t(df3t)[-1,], booktabs=T, caption="weight by asset") %>%
+    kable_styling(latex_options="HOLD_position")
+```
+- Plus la valeur $\beta$ de l'actif est faible plus il est un bon diversificateur et plus son allocation est importante. Cependant, un grand "specific risk" vient pénaliser l'allocation de l'actif en réduisant son poids correspondant. 
+- Par contre, plus l'actif est "bon marché" selon le modèle ($\alpha$ grand), plus son poids sera important. En effet, $\alpha$ représente une anomalie de pricing. On s'attend donc à ce que le marché corrige cette anomalie et remontant le prix de l'actif et on veut en profiter. On vient donc faire cet "arbitrage".
+- Ainsi les poids sont une combinaison du potentiel gain à faire en profitant de l'anomalie de marché rapporté au risque que cela implique de détenir ce titre.
+
+
+### Statistique du portefeuille actif
+
+```{r}
+active_port_ret <- sum(colMeans(monthly.ret.3[,assets])*t(df3$weight_n))
+excess_ret <- active_port_ret - colMeans(monthly.ret.3$Rf)
+monthly_ret.active <- apply(monthly.ret.3[,assets], 1, weighted.mean, df3$weight)
+ret_spread <- monthly_ret.active - monthly.ret.3$Rf
+alpha_active <- sum(df3$weight_n*df[1,assets])
+beta_active <- sum(df3$weight_n*df[2,assets])
+sigma_active_residual <- sum((df3$weight_n^2)*df3[assets,"specific risk²"])
+sigma_active <- sd(monthly_ret.active)
+
+print(paste("The excess return is : ", round(excess_ret*100,2), "%"))
+print(paste("The Active Portfolio Alpha is : ", round(alpha_active,2)))
+print(paste("The Active Portfolio Beta is : ", round(beta_active,2)))
+print(paste("The Active Portfolio standard deviation is : ", round(sigma_active*100,2),"%"))
+print(paste("The Active Portfolio residual variance is : ", round(sigma_active_residual^2,11)))
+```
+
+## Détermination de la pondération entre le portefeuille actif et le portefeuille de marché.
+
+On rappelle l'allocation de richesse au portefeuille actif:
+
+$$
+w_A = \frac{\alpha_A \sigma^2_M}{\alpha_A \sigma^2_M (1-\beta_A) + R_M \sigma^2(e_A)}
+$$
+
+Avec:
+
+$$
+\begin{aligned}
+R_A & = \alpha_A + \beta_A R_M \\
+\sigma^2_A & = \beta^2_A \sigma^2_M + \sigma^2(e_A)
+\end{aligned}
+$$
+
+
+```{r}
+sigmaM <- sd(monthly.ret.3$SPY)
+returnM <- colMeans(monthly.ret.3$SPY)
+w_num <- alpha_active*(sigmaM^2)
+w_den <- w_num*(1-beta_active)+returnM*(sigma_active_residual^2)
+wA <- w_num / w_den
+print(paste("Accordiding to the Treynor's Model, the active portfolio contribution is : ", toString(wA*100),"%"))
+```
+
+### Comentaire
+Le modèle affacte un poids démesuré au portefeuille car il ne le considère pas trop risqué ($\beta$ < 1) et veut profiter des corrections de marchés sur les $\alpha$ positifs (position long sur ces assets) et négatif (position short).
+
+## Capital Allocation Line
+
+Calculez l'espérance de rendement et le risque de quelques portefeuilles situés sur la "Capital Allocation Line" qui joint l'actif sans risque et le portefeuille tangent. Placez la solution du modèle de Treynor-Black, le portefeuille actif et le portefeuille de marché sur le graphique ci-dessous.
+
+```{r, echo=TRUE}
+Assets <- c("AAPL", "AMZN", "MSFT", "F",  "XOM", "MMM",  "HD",   "PG",   "KO")
+plot.data <- monthly.ret.3[, c(Assets, "Rf")]
+for(a in Assets) {
+  plot.data[, a] <- plot.data[, a] - plot.data$Rf
+  }
+
+res <- data.frame(Mean=apply(plot.data[, Assets],2,mean),
+                  Sd = apply(plot.data[, Assets],2,sd))
+rownames(res) <- Assets
+```
+
+
+
+```{r}
+mu <- colMeans(monthly.ret.3[,Assets]) * 12
+Sigma <- cov(monthly.ret.3[,Assets]) * 12 
+mu.star <- seq(from=0.04, to=0.35, length.out=200)
+mu.free <- mean(monthly.ret.3$Rf)
+sol <- NULL
+sol.with.rf<-NULL
+sharpe.max <- 0
+
+for(mu.s in mu.star) {
+
+A.sum <- matrix(rep(1,length(mu)), ncol=1)
+A.mat <- cbind(A.sum, mu, diag(length(mu)))
+b <- c(1, mu.s, rep(mu.free, length(mu)))
+qp <- solve.QP(2*Sigma, rep(0,length(mu)), A.mat, b, meq=2)
+sharpe <- (mu.s - mu.free) / sqrt(qp$value)
+if (sharpe > sharpe.max){
+  # tangent portfolio
+  w.tangent <- matrix(qp$solution / sum(qp$solution), ncol=1)
+  sharpe.max <- sharpe
+}
+tmp <- matrix(c(mu.s, sqrt(qp$value), sharpe, qp$solution), nrow=1)
+if(is.null(sol)) {
+  sol <- tmp  
+} else {
+  sol <- rbind(sol, tmp)
+}
+}
+
+for(mu.s in seq(from=0.09, to=1.2, length.out=200)){
+  tmp <- matrix(c(mu.s, (mu.s - mu.free)/sharpe.max , sharpe.max, (mu.s - mu.free)*w.tangent), nrow=1)
+  if(is.null(sol.with.rf)) {
+    sol.with.rf <- tmp  
+  } else {
+    sol.with.rf <- rbind(sol.with.rf, tmp)
+  }
+}
+dimnames(w.tangent)<- list(Assets)
+sigma.tangent <- sqrt(t(w.tangent) %*% Sigma %*% w.tangent)
+colnames(sol.with.rf) <- c("mu", "stdev", "Sharpe", Assets)
+colnames(sol) <- c("mu", "stdev", "Sharpe", Assets)
+```
+
+```{r, echo=FALSE, fig.height=6}
+plot(sol[,"stdev"], sol[,"mu"], type='l', col='red', lwd=2, 
+     xlab=expression(sigma), ylab="Excess Return",
+     ylim=c(0, 0.60), xlim=c(.0, 0.60), 
+     cex.lab=1.5, bty='n', main="Frontière de marché")
+
+lines(x = c(.0, 0.40), sharpe.max*c(.0, 0.40)+mu.free, 
+      type='l', col='green', lwd=2)
+
+for(i in seq_along(Assets)) {
+  text(sqrt(Sigma[i,i]), mu[i], Assets[i], cex=0.9, col="blue")
+}
+text(sqrt(0), mu.free, "Rf", cex=0.9, col="blue")
+
+monthly.ret.other <- as.data.frame(monthly.ret.3$SPY)
+colnames(monthly.ret.other) = "Market"
+monthly.ret.other$Active <- monthly_ret.active
+monthly.ret.other$Treynor <- wA*monthly_ret.active+(1-wA)*monthly.ret.3$SPY
+
+other_Assets <- c("Market", "Active", "Treynor")
+other_mu <- colMeans(monthly.ret.other[,other_Assets]) * 12
+other_Sigma <- cov(monthly.ret.other[,other_Assets]) * 12 
+
+for(i in seq_along(other_Assets)) {
+  text(sqrt(other_Sigma[i,i]), other_mu[i], other_Assets[i], cex=0.9, col="black")
+}
+
+```
+
+### Commentaires
+On remarque que, assez adroitement, le portefeuille actif est plus proche du portefeuille tangent que ne l'est le marché (donc plus optimal selon le modèle MV).
+Par ailleurs, le portefeuille de Treynor qui est sensé profiter des miss-pricing du marché reste plus risqué pour son espérance de rendement que l'optimum.
+
+
+
