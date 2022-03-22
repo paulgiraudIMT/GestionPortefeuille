@@ -120,24 +120,128 @@ r<-0
 b<-0
 T<-1
 Spot <- 100
-B.vega <- sapply(1:3, function(i) Vega(C[[i]], VolData[[i]][2]))
-B.vanna <- sapply(1:3, function(i) Vanna(C[[i]], VolData[[i]][2]))
-B.volga <- sapply(1:3, function(i) Volga(C[[i]], VolData[[i]][2]))
-B.vega
-B.vanna
-B.volga
+B.vega.benchmark <- sapply(1:3, function(i) Vega(C[[i]], VolData[[i]][2]))
+B.vanna.benchmark <- sapply(1:3, function(i) Vanna(C[[i]], VolData[[i]][2]))
+B.volga.benchmark <- sapply(1:3, function(i) Volga(C[[i]], VolData[[i]][2]))
+B.vega.benchmark
+B.vanna.benchmark
+B.volga.benchmark
 ```
 
 3. Choose a new strike for which we want to compute the implied volatility.
 Let's choose $K=110$.
 
 4. Compute the risk indicators for a call option struck at that strike. 
+
+```{r, echo=TRUE}
+r<-0
+b<-0
+T<-1
+Spot <- 100
+K <- 110
+#approximation
+VolData.ATM <- VolData[[2]][2]
+##############
+f <- function(vol=VolData.ATM, spot=Spot){
+  GBSPrice(PutCall='c', S=spot, K=K, T=T, r=r, b=b, sigma=vol)
+}
+B.vega <- Vega(f, VolData.ATM, Spot)
+B.vanna <- Vanna(f, VolData.ATM, Spot)
+B.volga <- Volga(f, VolData.ATM, Spot)
+B.vega
+B.vanna
+B.volga
+b <- c(B.vega, B.vanna, B.volga)
+```
     
 5. Compute the Vanna-Volga price adjustment and the corresponding implied volatility.
     
+```{r, echo=TRUE}
+A <- matrix(data = c(B.vega.benchmark, B.vanna.benchmark, B.volga.benchmark), nrow =3)
+X <- solve(A, b)
+print("Matrice A =")
+print(A)
+print("Risk indicators (b) = ")
+print(b)
+print("Weights =")
+print(X)
+
+
+
+#C.BS <- C
+#C.M <- 
+
+#somme <- 0
+#for (i in 2:3) {
+#  somme <- somme + X[i]*(C.M[i]-C.BS[i])
+#}
+#O.M <- O.BS + somme
+
+vol.K <- VolData[[1]][2]*X[1] + VolData[[2]][2]*X[2] + VolData[[3]][2]*X[3]
+vol.K
+```
+
+
+
 
 6. Wrap the above logic in a function in order to
 interpolate/extrapolate the vol curve from $K=70$ to $K=130$
+
+```{r, echo=TRUE}
+
+r<-0
+b<-0
+T<-1
+Spot <- 100
+K <- seq (70, 130 ,0.5)
+vol.imp <- c()
+#approximation
+VolData.ATM <- VolData[[2]][2]
+##############
+
+
+f <- function(vol=VolData.ATM, spot=Spot, k){
+  GBSPrice(PutCall='c', S=spot, K=k, T=T, r=r, b=b, sigma=vol)
+}
+
+Vega <- function(f, vol, spot=Spot, k) {
+  d_vol <- 10e-5
+  return( (f(vol+d_vol*vol, Spot, k)-f(vol-d_vol*vol, Spot, k))/(2*d_vol) )
+}
+
+Vanna <- function(f, vol, spot=Spot, k) {
+  d_vol <- 10e-5
+  d_spot <- 10e-5
+  return( (f(vol+d_vol*vol, Spot+d_spot*Spot, k)+
+           f(vol-d_vol*vol, Spot-d_spot*Spot, k)-
+           f(vol+d_vol*vol, Spot-d_spot*Spot, k)-
+           f(vol-d_vol*vol, Spot+d_spot*Spot, k))/(4*d_vol*d_spot) )
+}
+  
+Volga <- function(f, vol, spot=Spot, k) {
+  d_vol <- 10e-5
+  return( (f(vol+d_vol*vol, Spot, k) - 2*f(vol, Spot, k) + f(vol-d_vol*vol, Spot, k))/d_vol**2 )
+  }
+
+vol.f <- function(f, vol = VolData.ATM, spot=Spot, k) {
+  b = c(1:3)
+  b[1] = Vega(f, vol, spot=Spot, k)
+  b[2] = Vanna(f, VolData.ATM, Spot, k)
+  b[3] = Volga(f, VolData.ATM, Spot, k)
+  A = matrix(data = c(B.vega.benchmark, B.vanna.benchmark, B.volga.benchmark), nrow =3)
+  X = solve(A, b)
+  return(VolData[[1]][2]*X[1] + VolData[[2]][2]*X[2] + VolData[[3]][2]*X[3])
+}
+
+
+for (i in 1:121) {
+  vol.imp = append(vol.imp, vol.f(f, vol = VolData.ATM,spot = Spot, k = K[i]))
+}
+
+plot(K, vol.imp)
+
+```
+
 
 # Pricing a digital call
 
