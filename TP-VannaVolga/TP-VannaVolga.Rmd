@@ -139,8 +139,18 @@ b<-0
 T<-1
 Spot <- 100
 K <- 110
-#approximation
-VolData.ATM <- VolData[[2]][2]
+
+#interpolation quadratic
+strike.square <- c(VolData[[1]][1]^2, VolData[[2]][1]^2, VolData[[3]][1]^2)
+strike <- c(VolData[[1]][1], VolData[[2]][1], VolData[[3]][1])
+vol.data <- c(VolData[[1]][2], VolData[[2]][2], VolData[[3]][2])
+output =  lm(vol.data~strike+strike.square)
+
+vol.interpolation <- function(k= K){
+  return(0.75-8.875e-03*k+4.375e-05*k^2) 
+}
+
+VolData.ATM <- vol.interpolation(K)
 ##############
 f <- function(vol=VolData.ATM, spot=Spot){
   GBSPrice(PutCall='c', S=spot, K=K, T=T, r=r, b=b, sigma=vol)
@@ -195,12 +205,9 @@ T<-1
 Spot <- 100
 K <- seq (70, 130 ,0.5)
 vol.imp <- c()
-#approximation
-VolData.ATM <- VolData[[2]][2]
-##############
 
 
-f <- function(vol=VolData.ATM, spot=Spot, k){
+f <- function(vol, spot=Spot, k){
   GBSPrice(PutCall='c', S=spot, K=k, T=T, r=r, b=b, sigma=vol)
 }
 
@@ -226,8 +233,8 @@ Volga <- function(f, vol, spot=Spot, k) {
 vol.f <- function(f, vol = VolData.ATM, spot=Spot, k) {
   b = c(1:3)
   b[1] = Vega(f, vol, spot=Spot, k)
-  b[2] = Vanna(f, VolData.ATM, Spot, k)
-  b[3] = Volga(f, VolData.ATM, Spot, k)
+  b[2] = Vanna(f, vol, Spot, k)
+  b[3] = Volga(f, vol, Spot, k)
   A = matrix(data = c(B.vega.benchmark, B.vanna.benchmark, B.volga.benchmark), nrow =3)
   X = solve(A, b)
   return(VolData[[1]][2]*X[1] + VolData[[2]][2]*X[2] + VolData[[3]][2]*X[3])
@@ -235,7 +242,8 @@ vol.f <- function(f, vol = VolData.ATM, spot=Spot, k) {
 
 
 for (i in 1:121) {
-  vol.imp = append(vol.imp, vol.f(f, vol = VolData.ATM,spot = Spot, k = K[i]))
+  vol = vol.interpolation(K[i])
+  vol.imp = append(vol.imp, vol.f(f, vol = vol,spot = Spot, k = K[i]))
 }
 
 plot(K, vol.imp)
