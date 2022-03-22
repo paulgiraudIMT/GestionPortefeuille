@@ -254,6 +254,16 @@ performed by:
 \NormalTok{B.vega.benchmark }\OtherTok{\textless{}{-}} \FunctionTok{sapply}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{3}\NormalTok{, }\ControlFlowTok{function}\NormalTok{(i) }\FunctionTok{Vega}\NormalTok{(C[[i]], VolData[[i]][}\DecValTok{2}\NormalTok{]))}
 \NormalTok{B.vanna.benchmark }\OtherTok{\textless{}{-}} \FunctionTok{sapply}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{3}\NormalTok{, }\ControlFlowTok{function}\NormalTok{(i) }\FunctionTok{Vanna}\NormalTok{(C[[i]], VolData[[i]][}\DecValTok{2}\NormalTok{]))}
 \NormalTok{B.volga.benchmark }\OtherTok{\textless{}{-}} \FunctionTok{sapply}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{3}\NormalTok{, }\ControlFlowTok{function}\NormalTok{(i) }\FunctionTok{Volga}\NormalTok{(C[[i]], VolData[[i]][}\DecValTok{2}\NormalTok{]))}
+\FunctionTok{print}\NormalTok{(}\StringTok{"B.vega.benchmark for C1, C2 and C3"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "B.vega.benchmark for C1, C2 and C3"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
 \NormalTok{B.vega.benchmark}
 \end{Highlighting}
 \end{Shaded}
@@ -264,12 +274,32 @@ performed by:
 
 \begin{Shaded}
 \begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\StringTok{"B.vanna.benchmark for C1, C2 and C3"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "B.vanna.benchmark for C1, C2 and C3"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
 \NormalTok{B.vanna.benchmark}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{verbatim}
 ## [1] -14.84369   5.91719  26.87955
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\StringTok{"B.volga.benchmark for C1, C2 and C3"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "B.volga.benchmark for C1, C2 and C3"
 \end{verbatim}
 
 \begin{Shaded}
@@ -300,30 +330,41 @@ performed by:
 \NormalTok{Spot }\OtherTok{\textless{}{-}} \DecValTok{100}
 \NormalTok{K }\OtherTok{\textless{}{-}} \DecValTok{110}
 
-\CommentTok{\#interpolation quadratic}
-\NormalTok{strike.square }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(VolData[[}\DecValTok{1}\NormalTok{]][}\DecValTok{1}\NormalTok{]}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{, VolData[[}\DecValTok{2}\NormalTok{]][}\DecValTok{1}\NormalTok{]}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{, VolData[[}\DecValTok{3}\NormalTok{]][}\DecValTok{1}\NormalTok{]}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
-\NormalTok{strike }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(VolData[[}\DecValTok{1}\NormalTok{]][}\DecValTok{1}\NormalTok{], VolData[[}\DecValTok{2}\NormalTok{]][}\DecValTok{1}\NormalTok{], VolData[[}\DecValTok{3}\NormalTok{]][}\DecValTok{1}\NormalTok{])}
-\NormalTok{vol.data }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(VolData[[}\DecValTok{1}\NormalTok{]][}\DecValTok{2}\NormalTok{], VolData[[}\DecValTok{2}\NormalTok{]][}\DecValTok{2}\NormalTok{], VolData[[}\DecValTok{3}\NormalTok{]][}\DecValTok{2}\NormalTok{])}
-\NormalTok{output }\OtherTok{=}  \FunctionTok{lm}\NormalTok{(vol.data}\SpecialCharTok{\textasciitilde{}}\NormalTok{strike}\SpecialCharTok{+}\NormalTok{strike.square)}
 
-\NormalTok{vol.interpolation }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(}\AttributeTok{k=}\NormalTok{ K)\{}
-  \FunctionTok{return}\NormalTok{(}\FloatTok{0.75{-}8.875e{-}03}\SpecialCharTok{*}\NormalTok{k}\FloatTok{+4.375e{-}05}\SpecialCharTok{*}\NormalTok{k}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{) }
-\NormalTok{\}}
+\NormalTok{VolData.ATM }\OtherTok{\textless{}{-}}\NormalTok{ VolData[[}\DecValTok{2}\NormalTok{]][}\DecValTok{2}\NormalTok{]}
 
-\NormalTok{VolData.ATM }\OtherTok{\textless{}{-}} \FunctionTok{vol.interpolation}\NormalTok{(K)}
-\DocumentationTok{\#\#\#\#\#\#\#\#\#\#\#\#\#\#}
 \NormalTok{f }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(}\AttributeTok{vol=}\NormalTok{VolData.ATM, }\AttributeTok{spot=}\NormalTok{Spot)\{}
   \FunctionTok{GBSPrice}\NormalTok{(}\AttributeTok{PutCall=}\StringTok{\textquotesingle{}c\textquotesingle{}}\NormalTok{, }\AttributeTok{S=}\NormalTok{spot, }\AttributeTok{K=}\NormalTok{K, }\AttributeTok{T=}\NormalTok{T, }\AttributeTok{r=}\NormalTok{r, }\AttributeTok{b=}\NormalTok{b, }\AttributeTok{sigma=}\NormalTok{vol)}
 \NormalTok{\}}
 \NormalTok{B.vega }\OtherTok{\textless{}{-}} \FunctionTok{Vega}\NormalTok{(f, VolData.ATM, Spot)}
 \NormalTok{B.vanna }\OtherTok{\textless{}{-}} \FunctionTok{Vanna}\NormalTok{(f, VolData.ATM, Spot)}
 \NormalTok{B.volga }\OtherTok{\textless{}{-}} \FunctionTok{Volga}\NormalTok{(f, VolData.ATM, Spot)}
+\FunctionTok{print}\NormalTok{(}\StringTok{"vega for K=110"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "vega for K=110"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
 \NormalTok{B.vega}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{verbatim}
-## [1] 11.93362
+## [1] 11.80115
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\StringTok{"vanna for K=110"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "vanna for K=110"
 \end{verbatim}
 
 \begin{Shaded}
@@ -333,7 +374,17 @@ performed by:
 \end{Shaded}
 
 \begin{verbatim}
-## [1] 18.34531
+## [1] 18.39802
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\StringTok{"volga for K=110"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "volga for K=110"
 \end{verbatim}
 
 \begin{Shaded}
@@ -343,12 +394,12 @@ performed by:
 \end{Shaded}
 
 \begin{verbatim}
-## [1] 0.9056663
+## [1] 0.9256084
 \end{verbatim}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{b }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(B.vega, B.vanna, B.volga)}
+\NormalTok{b.risk }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(B.vega, B.vanna, B.volga)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -364,7 +415,8 @@ performed by:
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{A }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\AttributeTok{data =} \FunctionTok{c}\NormalTok{(B.vega.benchmark, B.vanna.benchmark, B.volga.benchmark), }\AttributeTok{nrow =}\DecValTok{3}\NormalTok{)}
-\NormalTok{X }\OtherTok{\textless{}{-}} \FunctionTok{solve}\NormalTok{(A, b)}
+\NormalTok{A }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(A)}
+\NormalTok{X }\OtherTok{\textless{}{-}} \FunctionTok{solve}\NormalTok{(A, b.risk)}
 \FunctionTok{print}\NormalTok{(}\StringTok{"Matrice A ="}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
@@ -380,10 +432,10 @@ performed by:
 \end{Shaded}
 
 \begin{verbatim}
-##           [,1]      [,2]       [,3]
-## [1,]  8.840076 -14.84369  4.0722703
-## [2,] 11.834380   5.91719 -0.2662745
-## [3,] 11.499491  26.87955  3.5671601
+##            [,1]       [,2]     [,3]
+## [1,]   8.840076 11.8343799 11.49949
+## [2,] -14.843691  5.9171899 26.87955
+## [3,]   4.072270 -0.2662745  3.56716
 \end{verbatim}
 
 \begin{Shaded}
@@ -398,12 +450,12 @@ performed by:
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{print}\NormalTok{(b)}
+\FunctionTok{print}\NormalTok{(b.risk)}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{verbatim}
-## [1] 11.9336183 18.3453055  0.9056663
+## [1] 11.8011514 18.3980180  0.9256084
 \end{verbatim}
 
 \begin{Shaded}
@@ -423,27 +475,92 @@ performed by:
 \end{Shaded}
 
 \begin{verbatim}
-## [1]  1.7000563 -0.3995027 -2.2162341
+## [1] -0.1381243  0.6480079  0.4655345
 \end{verbatim}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{\#C.BS \textless{}{-} C}
-\CommentTok{\#C.M \textless{}{-} }
-
-\CommentTok{\#somme \textless{}{-} 0}
-\CommentTok{\#for (i in 2:3) \{}
-\CommentTok{\#  somme \textless{}{-} somme + X[i]*(C.M[i]{-}C.BS[i])}
-\CommentTok{\#\}}
-\CommentTok{\#O.M \textless{}{-} O.BS + somme}
-
 \NormalTok{vol.K }\OtherTok{\textless{}{-}}\NormalTok{ VolData[[}\DecValTok{1}\NormalTok{]][}\DecValTok{2}\NormalTok{]}\SpecialCharTok{*}\NormalTok{X[}\DecValTok{1}\NormalTok{] }\SpecialCharTok{+}\NormalTok{ VolData[[}\DecValTok{2}\NormalTok{]][}\DecValTok{2}\NormalTok{]}\SpecialCharTok{*}\NormalTok{X[}\DecValTok{2}\NormalTok{] }\SpecialCharTok{+}\NormalTok{ VolData[[}\DecValTok{3}\NormalTok{]][}\DecValTok{2}\NormalTok{]}\SpecialCharTok{*}\NormalTok{X[}\DecValTok{3}\NormalTok{]}
-\NormalTok{vol.K}
+\FunctionTok{print}\NormalTok{(}\StringTok{"vol de K = 110"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{verbatim}
-## [1] -0.2739465
+## [1] "vol de K = 110"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(vol.K)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.2968459
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{C1.M }\OtherTok{\textless{}{-}} \FunctionTok{GBSPrice}\NormalTok{(}\AttributeTok{PutCall=}\StringTok{\textquotesingle{}c\textquotesingle{}}\NormalTok{, }\AttributeTok{S=}\DecValTok{100}\NormalTok{, }\AttributeTok{K=}\DecValTok{80}\NormalTok{, }\AttributeTok{T=}\NormalTok{T, }\AttributeTok{r=}\NormalTok{r, }\AttributeTok{b=}\NormalTok{b, }\AttributeTok{sigma=}\NormalTok{VolData.ATM)}
+
+\NormalTok{C2.M }\OtherTok{\textless{}{-}} \FunctionTok{GBSPrice}\NormalTok{(}\AttributeTok{PutCall=}\StringTok{\textquotesingle{}c\textquotesingle{}}\NormalTok{, }\AttributeTok{S=}\DecValTok{100}\NormalTok{, }\AttributeTok{K=}\DecValTok{100}\NormalTok{, }\AttributeTok{T=}\NormalTok{T, }\AttributeTok{r=}\NormalTok{r, }\AttributeTok{b=}\NormalTok{b, }\AttributeTok{sigma=}\NormalTok{VolData.ATM)}
+
+\NormalTok{C3.M }\OtherTok{\textless{}{-}} \FunctionTok{GBSPrice}\NormalTok{(}\AttributeTok{PutCall=}\StringTok{\textquotesingle{}c\textquotesingle{}}\NormalTok{, }\AttributeTok{S=}\DecValTok{100}\NormalTok{, }\AttributeTok{K=}\DecValTok{120}\NormalTok{, }\AttributeTok{T=}\NormalTok{T, }\AttributeTok{r=}\NormalTok{r, }\AttributeTok{b=}\NormalTok{b, }\AttributeTok{sigma=}\NormalTok{VolData.ATM)}
+
+\NormalTok{C.M }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(C1.M, C2.M, C3.M)}
+
+\NormalTok{C1.BS }\OtherTok{\textless{}{-}} \FunctionTok{GBSPrice}\NormalTok{(}\AttributeTok{PutCall=}\StringTok{\textquotesingle{}c\textquotesingle{}}\NormalTok{, }\AttributeTok{S=}\DecValTok{100}\NormalTok{, }\AttributeTok{K=}\DecValTok{80}\NormalTok{, }\AttributeTok{T=}\NormalTok{T, }\AttributeTok{r=}\NormalTok{r, }\AttributeTok{b=}\NormalTok{b, }\AttributeTok{sigma=}\NormalTok{VolData.ATM)}
+
+\NormalTok{C2.BS }\OtherTok{\textless{}{-}} \FunctionTok{GBSPrice}\NormalTok{(}\AttributeTok{PutCall=}\StringTok{\textquotesingle{}c\textquotesingle{}}\NormalTok{, }\AttributeTok{S=}\DecValTok{100}\NormalTok{, }\AttributeTok{K=}\DecValTok{100}\NormalTok{, }\AttributeTok{T=}\NormalTok{T, }\AttributeTok{r=}\NormalTok{r, }\AttributeTok{b=}\NormalTok{b, }\AttributeTok{sigma=}\NormalTok{VolData.ATM)}
+
+\NormalTok{C3.BS }\OtherTok{\textless{}{-}} \FunctionTok{GBSPrice}\NormalTok{(}\AttributeTok{PutCall=}\StringTok{\textquotesingle{}c\textquotesingle{}}\NormalTok{, }\AttributeTok{S=}\DecValTok{100}\NormalTok{, }\AttributeTok{K=}\DecValTok{120}\NormalTok{, }\AttributeTok{T=}\NormalTok{T, }\AttributeTok{r=}\NormalTok{r, }\AttributeTok{b=}\NormalTok{b, }\AttributeTok{sigma=}\NormalTok{VolData.ATM)}
+
+\NormalTok{C.BS }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(C1.BS, C2.BS, C3.BS)}
+
+\NormalTok{O.BS }\OtherTok{\textless{}{-}} \FunctionTok{GBSPrice}\NormalTok{(}\AttributeTok{PutCall=}\StringTok{\textquotesingle{}c\textquotesingle{}}\NormalTok{, }\AttributeTok{S=}\DecValTok{100}\NormalTok{, }\AttributeTok{K=}\DecValTok{110}\NormalTok{, }\AttributeTok{T=}\NormalTok{T, }\AttributeTok{r=}\NormalTok{r, }\AttributeTok{b=}\NormalTok{b, }\AttributeTok{sigma=}\NormalTok{VolData[[}\DecValTok{2}\NormalTok{]][}\DecValTok{2}\NormalTok{])}
+
+
+\NormalTok{somme }\OtherTok{\textless{}{-}} \DecValTok{0}
+\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\DecValTok{3}\NormalTok{) \{}
+\NormalTok{  somme }\OtherTok{\textless{}{-}}\NormalTok{ somme }\SpecialCharTok{+}\NormalTok{ X[i]}\SpecialCharTok{*}\NormalTok{(C.M[i]}\SpecialCharTok{{-}}\NormalTok{C.BS[i])}
+\NormalTok{\}}
+\NormalTok{O.M }\OtherTok{\textless{}{-}}\NormalTok{ O.BS }\SpecialCharTok{+}\NormalTok{ somme}
+\FunctionTok{print}\NormalTok{(}\StringTok{"Price with BS"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "Price with BS"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(O.BS)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 8.141012
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\StringTok{"Price ajusted"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "Price ajusted"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(O.M)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 8.141012
 \end{verbatim}
 
 \begin{enumerate}
@@ -455,59 +572,6 @@ performed by:
   the vol curve from \(K=70\) to \(K=130\)
 \end{enumerate}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{r}\OtherTok{\textless{}{-}}\DecValTok{0}
-\NormalTok{b}\OtherTok{\textless{}{-}}\DecValTok{0}
-\NormalTok{T}\OtherTok{\textless{}{-}}\DecValTok{1}
-\NormalTok{Spot }\OtherTok{\textless{}{-}} \DecValTok{100}
-\NormalTok{K }\OtherTok{\textless{}{-}} \FunctionTok{seq}\NormalTok{ (}\DecValTok{70}\NormalTok{, }\DecValTok{130}\NormalTok{ ,}\FloatTok{0.5}\NormalTok{)}
-\NormalTok{vol.imp }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{()}
-
-
-\NormalTok{f }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(vol, }\AttributeTok{spot=}\NormalTok{Spot, k)\{}
-  \FunctionTok{GBSPrice}\NormalTok{(}\AttributeTok{PutCall=}\StringTok{\textquotesingle{}c\textquotesingle{}}\NormalTok{, }\AttributeTok{S=}\NormalTok{spot, }\AttributeTok{K=}\NormalTok{k, }\AttributeTok{T=}\NormalTok{T, }\AttributeTok{r=}\NormalTok{r, }\AttributeTok{b=}\NormalTok{b, }\AttributeTok{sigma=}\NormalTok{vol)}
-\NormalTok{\}}
-
-\NormalTok{Vega }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(f, vol, }\AttributeTok{spot=}\NormalTok{Spot, k) \{}
-\NormalTok{  d\_vol }\OtherTok{\textless{}{-}} \FloatTok{10e{-}5}
-  \FunctionTok{return}\NormalTok{( (}\FunctionTok{f}\NormalTok{(vol}\SpecialCharTok{+}\NormalTok{d\_vol}\SpecialCharTok{*}\NormalTok{vol, Spot, k)}\SpecialCharTok{{-}}\FunctionTok{f}\NormalTok{(vol}\SpecialCharTok{{-}}\NormalTok{d\_vol}\SpecialCharTok{*}\NormalTok{vol, Spot, k))}\SpecialCharTok{/}\NormalTok{(}\DecValTok{2}\SpecialCharTok{*}\NormalTok{d\_vol) )}
-\NormalTok{\}}
-
-\NormalTok{Vanna }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(f, vol, }\AttributeTok{spot=}\NormalTok{Spot, k) \{}
-\NormalTok{  d\_vol }\OtherTok{\textless{}{-}} \FloatTok{10e{-}5}
-\NormalTok{  d\_spot }\OtherTok{\textless{}{-}} \FloatTok{10e{-}5}
-  \FunctionTok{return}\NormalTok{( (}\FunctionTok{f}\NormalTok{(vol}\SpecialCharTok{+}\NormalTok{d\_vol}\SpecialCharTok{*}\NormalTok{vol, Spot}\SpecialCharTok{+}\NormalTok{d\_spot}\SpecialCharTok{*}\NormalTok{Spot, k)}\SpecialCharTok{+}
-           \FunctionTok{f}\NormalTok{(vol}\SpecialCharTok{{-}}\NormalTok{d\_vol}\SpecialCharTok{*}\NormalTok{vol, Spot}\SpecialCharTok{{-}}\NormalTok{d\_spot}\SpecialCharTok{*}\NormalTok{Spot, k)}\SpecialCharTok{{-}}
-           \FunctionTok{f}\NormalTok{(vol}\SpecialCharTok{+}\NormalTok{d\_vol}\SpecialCharTok{*}\NormalTok{vol, Spot}\SpecialCharTok{{-}}\NormalTok{d\_spot}\SpecialCharTok{*}\NormalTok{Spot, k)}\SpecialCharTok{{-}}
-           \FunctionTok{f}\NormalTok{(vol}\SpecialCharTok{{-}}\NormalTok{d\_vol}\SpecialCharTok{*}\NormalTok{vol, Spot}\SpecialCharTok{+}\NormalTok{d\_spot}\SpecialCharTok{*}\NormalTok{Spot, k))}\SpecialCharTok{/}\NormalTok{(}\DecValTok{4}\SpecialCharTok{*}\NormalTok{d\_vol}\SpecialCharTok{*}\NormalTok{d\_spot) )}
-\NormalTok{\}}
-  
-\NormalTok{Volga }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(f, vol, }\AttributeTok{spot=}\NormalTok{Spot, k) \{}
-\NormalTok{  d\_vol }\OtherTok{\textless{}{-}} \FloatTok{10e{-}5}
-  \FunctionTok{return}\NormalTok{( (}\FunctionTok{f}\NormalTok{(vol}\SpecialCharTok{+}\NormalTok{d\_vol}\SpecialCharTok{*}\NormalTok{vol, Spot, k) }\SpecialCharTok{{-}} \DecValTok{2}\SpecialCharTok{*}\FunctionTok{f}\NormalTok{(vol, Spot, k) }\SpecialCharTok{+} \FunctionTok{f}\NormalTok{(vol}\SpecialCharTok{{-}}\NormalTok{d\_vol}\SpecialCharTok{*}\NormalTok{vol, Spot, k))}\SpecialCharTok{/}\NormalTok{d\_vol}\SpecialCharTok{**}\DecValTok{2}\NormalTok{ )}
-\NormalTok{  \}}
-
-\NormalTok{vol.f }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(f, }\AttributeTok{vol =}\NormalTok{ VolData.ATM, }\AttributeTok{spot=}\NormalTok{Spot, k) \{}
-\NormalTok{  b }\OtherTok{=} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{3}\NormalTok{)}
-\NormalTok{  b[}\DecValTok{1}\NormalTok{] }\OtherTok{=} \FunctionTok{Vega}\NormalTok{(f, vol, }\AttributeTok{spot=}\NormalTok{Spot, k)}
-\NormalTok{  b[}\DecValTok{2}\NormalTok{] }\OtherTok{=} \FunctionTok{Vanna}\NormalTok{(f, vol, Spot, k)}
-\NormalTok{  b[}\DecValTok{3}\NormalTok{] }\OtherTok{=} \FunctionTok{Volga}\NormalTok{(f, vol, Spot, k)}
-\NormalTok{  A }\OtherTok{=} \FunctionTok{matrix}\NormalTok{(}\AttributeTok{data =} \FunctionTok{c}\NormalTok{(B.vega.benchmark, B.vanna.benchmark, B.volga.benchmark), }\AttributeTok{nrow =}\DecValTok{3}\NormalTok{)}
-\NormalTok{  X }\OtherTok{=} \FunctionTok{solve}\NormalTok{(A, b)}
-  \FunctionTok{return}\NormalTok{(VolData[[}\DecValTok{1}\NormalTok{]][}\DecValTok{2}\NormalTok{]}\SpecialCharTok{*}\NormalTok{X[}\DecValTok{1}\NormalTok{] }\SpecialCharTok{+}\NormalTok{ VolData[[}\DecValTok{2}\NormalTok{]][}\DecValTok{2}\NormalTok{]}\SpecialCharTok{*}\NormalTok{X[}\DecValTok{2}\NormalTok{] }\SpecialCharTok{+}\NormalTok{ VolData[[}\DecValTok{3}\NormalTok{]][}\DecValTok{2}\NormalTok{]}\SpecialCharTok{*}\NormalTok{X[}\DecValTok{3}\NormalTok{])}
-\NormalTok{\}}
-
-
-\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\DecValTok{121}\NormalTok{) \{}
-\NormalTok{  vol }\OtherTok{=} \FunctionTok{vol.interpolation}\NormalTok{(K[i])}
-\NormalTok{  vol.imp }\OtherTok{=} \FunctionTok{append}\NormalTok{(vol.imp, }\FunctionTok{vol.f}\NormalTok{(f, }\AttributeTok{vol =}\NormalTok{ vol,}\AttributeTok{spot =}\NormalTok{ Spot, }\AttributeTok{k =}\NormalTok{ K[i]))}
-\NormalTok{\}}
-
-\FunctionTok{plot}\NormalTok{(K, vol.imp)}
-\end{Highlighting}
-\end{Shaded}
-
 \includegraphics{TP-VannaVolga_files/figure-latex/unnamed-chunk-10-1.pdf}
 
 \hypertarget{pricing-a-digital-call}{%
@@ -518,5 +582,190 @@ Recall that a digital call with strike \(K\) pays one euro if
 
 Using the same logic as in the previous question, price a digital call,
 maturity \(T=1\), struck at \(K=105\).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{r}\OtherTok{\textless{}{-}}\DecValTok{0}
+\NormalTok{b}\OtherTok{\textless{}{-}}\DecValTok{0}
+\NormalTok{T}\OtherTok{\textless{}{-}}\DecValTok{1}
+\NormalTok{Spot }\OtherTok{\textless{}{-}} \DecValTok{100}
+\NormalTok{K }\OtherTok{\textless{}{-}} \DecValTok{105}
+
+\NormalTok{epsi }\OtherTok{\textless{}{-}} \FloatTok{0.0001}
+
+
+\NormalTok{VolData.ATM }\OtherTok{\textless{}{-}}\NormalTok{ VolData[[}\DecValTok{2}\NormalTok{]][}\DecValTok{2}\NormalTok{]}
+
+\NormalTok{f }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(}\AttributeTok{vol=}\NormalTok{VolData.ATM, }\AttributeTok{spot=}\NormalTok{Spot)\{}
+  \FunctionTok{GBSPrice}\NormalTok{(}\AttributeTok{PutCall=}\StringTok{\textquotesingle{}c\textquotesingle{}}\NormalTok{, }\AttributeTok{S=}\NormalTok{spot, }\AttributeTok{K=}\NormalTok{K}\SpecialCharTok{{-}}\NormalTok{epsi, }\AttributeTok{T=}\NormalTok{T, }\AttributeTok{r=}\NormalTok{r, }\AttributeTok{b=}\NormalTok{b, }\AttributeTok{sigma=}\NormalTok{vol)}
+\NormalTok{\}}
+\NormalTok{B.vega }\OtherTok{\textless{}{-}} \FunctionTok{Vega}\NormalTok{(f, VolData.ATM, Spot)}
+\NormalTok{B.vanna }\OtherTok{\textless{}{-}} \FunctionTok{Vanna}\NormalTok{(f, VolData.ATM, Spot)}
+\NormalTok{B.volga }\OtherTok{\textless{}{-}} \FunctionTok{Volga}\NormalTok{(f, VolData.ATM, Spot)}
+\FunctionTok{print}\NormalTok{(}\StringTok{"vega for K=105 {-} espilon"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "vega for K=105 - espilon"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{B.vega}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 11.96731
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\StringTok{"vanna for K=105 {-} espilon"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "vanna for K=105 - espilon"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{B.vanna}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 12.47117
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\StringTok{"volga for K=105 {-} espilon"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "volga for K=105 - espilon"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{B.volga}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.04725749
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{b.risk.moins }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(B.vega, B.vanna, B.volga)}
+\NormalTok{X.moins }\OtherTok{\textless{}{-}} \FunctionTok{solve}\NormalTok{(A, b.risk.moins)}
+
+\NormalTok{O.BS.moins }\OtherTok{\textless{}{-}} \FunctionTok{GBSPrice}\NormalTok{(}\AttributeTok{PutCall=}\StringTok{\textquotesingle{}c\textquotesingle{}}\NormalTok{, }\AttributeTok{S=}\DecValTok{100}\NormalTok{, }\AttributeTok{K=}\NormalTok{K}\SpecialCharTok{{-}}\NormalTok{epsi, }\AttributeTok{T=}\NormalTok{T, }\AttributeTok{r=}\NormalTok{r, }\AttributeTok{b=}\NormalTok{b, }\AttributeTok{sigma=}\NormalTok{VolData[[}\DecValTok{2}\NormalTok{]][}\DecValTok{2}\NormalTok{])}
+
+
+\NormalTok{somme }\OtherTok{\textless{}{-}} \DecValTok{0}
+\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\DecValTok{3}\NormalTok{) \{}
+\NormalTok{  somme }\OtherTok{\textless{}{-}}\NormalTok{ somme }\SpecialCharTok{+}\NormalTok{ X.moins[i]}\SpecialCharTok{*}\NormalTok{(C.M[i]}\SpecialCharTok{{-}}\NormalTok{C.BS[i])}
+\NormalTok{\}}
+\NormalTok{O.M.moins }\OtherTok{\textless{}{-}}\NormalTok{ O.BS.moins }\SpecialCharTok{+}\NormalTok{ somme}
+
+\FunctionTok{print}\NormalTok{(}\StringTok{"price with BS for K=105 {-} espilon"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "price with BS for K=105 - espilon"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(O.BS.moins)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 9.881693
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\StringTok{"price ajusted for K=105 {-} espilon"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "price ajusted for K=105 - espilon"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(O.M.moins)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 9.881693
+\end{verbatim}
+
+\begin{verbatim}
+## [1] "vega for K=105 - espilon"
+\end{verbatim}
+
+\begin{verbatim}
+## [1] 11.96731
+\end{verbatim}
+
+\begin{verbatim}
+## [1] "vanna for K=105 - espilon"
+\end{verbatim}
+
+\begin{verbatim}
+## [1] 12.47142
+\end{verbatim}
+
+\begin{verbatim}
+## [1] "volga for K=105 - espilon"
+\end{verbatim}
+
+\begin{verbatim}
+## [1] 0.04727951
+\end{verbatim}
+
+\begin{verbatim}
+## [1] "price with BS for K=105 + espilon"
+\end{verbatim}
+
+\begin{verbatim}
+## [1] 9.881618
+\end{verbatim}
+
+\begin{verbatim}
+## [1] "price ajusted for K=105 + espilon"
+\end{verbatim}
+
+\begin{verbatim}
+## [1] 9.881618
+\end{verbatim}
+
+\begin{verbatim}
+## [1] "price for a digital call paying 2*epsi"
+\end{verbatim}
+
+\begin{verbatim}
+## [1] 7.545588e-05
+\end{verbatim}
+
+\begin{verbatim}
+## [1] "price for a digital call paying 1"
+\end{verbatim}
+
+\begin{verbatim}
+## [1] 0.3772794
+\end{verbatim}
 
 \end{document}

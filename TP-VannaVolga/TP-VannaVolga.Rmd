@@ -123,8 +123,11 @@ Spot <- 100
 B.vega.benchmark <- sapply(1:3, function(i) Vega(C[[i]], VolData[[i]][2]))
 B.vanna.benchmark <- sapply(1:3, function(i) Vanna(C[[i]], VolData[[i]][2]))
 B.volga.benchmark <- sapply(1:3, function(i) Volga(C[[i]], VolData[[i]][2]))
+print("B.vega.benchmark for C1, C2 and C3")
 B.vega.benchmark
+print("B.vanna.benchmark for C1, C2 and C3")
 B.vanna.benchmark
+print("B.volga.benchmark for C1, C2 and C3")
 B.volga.benchmark
 ```
 
@@ -140,55 +143,70 @@ T<-1
 Spot <- 100
 K <- 110
 
-#interpolation quadratic
-strike.square <- c(VolData[[1]][1]^2, VolData[[2]][1]^2, VolData[[3]][1]^2)
-strike <- c(VolData[[1]][1], VolData[[2]][1], VolData[[3]][1])
-vol.data <- c(VolData[[1]][2], VolData[[2]][2], VolData[[3]][2])
-output =  lm(vol.data~strike+strike.square)
 
-vol.interpolation <- function(k= K){
-  return(0.75-8.875e-03*k+4.375e-05*k^2) 
-}
+VolData.ATM <- VolData[[2]][2]
 
-VolData.ATM <- vol.interpolation(K)
-##############
 f <- function(vol=VolData.ATM, spot=Spot){
   GBSPrice(PutCall='c', S=spot, K=K, T=T, r=r, b=b, sigma=vol)
 }
 B.vega <- Vega(f, VolData.ATM, Spot)
 B.vanna <- Vanna(f, VolData.ATM, Spot)
 B.volga <- Volga(f, VolData.ATM, Spot)
+print("vega for K=110")
 B.vega
+print("vanna for K=110")
 B.vanna
+print("volga for K=110")
 B.volga
-b <- c(B.vega, B.vanna, B.volga)
+b.risk <- c(B.vega, B.vanna, B.volga)
 ```
     
 5. Compute the Vanna-Volga price adjustment and the corresponding implied volatility.
     
 ```{r, echo=TRUE}
 A <- matrix(data = c(B.vega.benchmark, B.vanna.benchmark, B.volga.benchmark), nrow =3)
-X <- solve(A, b)
+A <- t(A)
+X <- solve(A, b.risk)
 print("Matrice A =")
 print(A)
 print("Risk indicators (b) = ")
-print(b)
+print(b.risk)
 print("Weights =")
 print(X)
 
-
-
-#C.BS <- C
-#C.M <- 
-
-#somme <- 0
-#for (i in 2:3) {
-#  somme <- somme + X[i]*(C.M[i]-C.BS[i])
-#}
-#O.M <- O.BS + somme
-
 vol.K <- VolData[[1]][2]*X[1] + VolData[[2]][2]*X[2] + VolData[[3]][2]*X[3]
-vol.K
+print("vol de K = 110")
+print(vol.K)
+
+C1.M <- GBSPrice(PutCall='c', S=100, K=80, T=T, r=r, b=b, sigma=VolData.ATM)
+
+C2.M <- GBSPrice(PutCall='c', S=100, K=100, T=T, r=r, b=b, sigma=VolData.ATM)
+
+C3.M <- GBSPrice(PutCall='c', S=100, K=120, T=T, r=r, b=b, sigma=VolData.ATM)
+
+C.M <- c(C1.M, C2.M, C3.M)
+
+C1.BS <- GBSPrice(PutCall='c', S=100, K=80, T=T, r=r, b=b, sigma=VolData.ATM)
+
+C2.BS <- GBSPrice(PutCall='c', S=100, K=100, T=T, r=r, b=b, sigma=VolData.ATM)
+
+C3.BS <- GBSPrice(PutCall='c', S=100, K=120, T=T, r=r, b=b, sigma=VolData.ATM)
+
+C.BS <- c(C1.BS, C2.BS, C3.BS)
+
+O.BS <- GBSPrice(PutCall='c', S=100, K=110, T=T, r=r, b=b, sigma=VolData[[2]][2])
+
+
+somme <- 0
+for (i in 1:3) {
+  somme <- somme + X[i]*(C.M[i]-C.BS[i])
+}
+O.M <- O.BS + somme
+print("Price with BS")
+print(O.BS)
+print("Price ajusted")
+print(O.M)
+
 ```
 
 
@@ -197,7 +215,7 @@ vol.K
 6. Wrap the above logic in a function in order to
 interpolate/extrapolate the vol curve from $K=70$ to $K=130$
 
-```{r, echo=TRUE}
+```{r, echo=F}
 
 r<-0
 b<-0
@@ -236,14 +254,14 @@ vol.f <- function(f, vol = VolData.ATM, spot=Spot, k) {
   b[2] = Vanna(f, vol, Spot, k)
   b[3] = Volga(f, vol, Spot, k)
   A = matrix(data = c(B.vega.benchmark, B.vanna.benchmark, B.volga.benchmark), nrow =3)
+  A <- t(A)
   X = solve(A, b)
   return(VolData[[1]][2]*X[1] + VolData[[2]][2]*X[2] + VolData[[3]][2]*X[3])
 }
 
 
 for (i in 1:121) {
-  vol = vol.interpolation(K[i])
-  vol.imp = append(vol.imp, vol.f(f, vol = vol,spot = Spot, k = K[i]))
+  vol.imp = append(vol.imp, vol.f(f, vol = VolData.ATM,spot = Spot, k = K[i]))
 }
 
 plot(K, vol.imp)
@@ -256,3 +274,114 @@ plot(K, vol.imp)
 Recall that a digital call with strike $K$ pays one euro if $S_T \geq K$, and nothing otherwise.
 
 Using the same logic as in the previous question, price a digital call, maturity $T=1$, struck at $K=105$. 
+
+```{r, echo=F}
+Vega <- function(f, vol, spot=Spot) {
+  d_vol <- 10e-5
+  return( (f(vol+d_vol*vol, Spot)-f(vol-d_vol*vol, Spot))/(2*d_vol) )
+}
+
+Vanna <- function(f, vol, spot=Spot) {
+  d_vol <- 10e-5
+  d_spot <- 10e-5
+  return( (f(vol+d_vol*vol, Spot+d_spot*Spot)+
+           f(vol-d_vol*vol, Spot-d_spot*Spot)-
+           f(vol+d_vol*vol, Spot-d_spot*Spot)-
+           f(vol-d_vol*vol, Spot+d_spot*Spot))/(4*d_vol*d_spot) )
+}
+  
+Volga <- function(f, vol, spot=Spot) {
+  d_vol <- 10e-5
+  return( (f(vol+d_vol*vol, Spot) - 2*f(vol, Spot) + f(vol-d_vol*vol, Spot))/d_vol**2 )
+  }
+```
+
+```{r, echo=TRUE}
+r<-0
+b<-0
+T<-1
+Spot <- 100
+K <- 105
+
+epsi <- 0.000001
+
+
+VolData.ATM <- VolData[[2]][2]
+
+f <- function(vol=VolData.ATM, spot=Spot){
+  GBSPrice(PutCall='c', S=spot, K=K-epsi, T=T, r=r, b=b, sigma=vol)
+}
+B.vega <- Vega(f, VolData.ATM, Spot)
+B.vanna <- Vanna(f, VolData.ATM, Spot)
+B.volga <- Volga(f, VolData.ATM, Spot)
+print("vega for K=105 - espilon")
+B.vega
+print("vanna for K=105 - espilon")
+B.vanna
+print("volga for K=105 - espilon")
+B.volga
+b.risk.moins <- c(B.vega, B.vanna, B.volga)
+X.moins <- solve(A, b.risk.moins)
+
+O.BS.moins <- GBSPrice(PutCall='c', S=100, K=K-epsi, T=T, r=r, b=b, sigma=VolData[[2]][2])
+
+
+somme <- 0
+for (i in 1:3) {
+  somme <- somme + X.moins[i]*(C.M[i]-C.BS[i])
+}
+O.M.moins <- O.BS.moins + somme
+
+print("price with BS for K=105 - espilon")
+print(O.BS.moins)
+print("price ajusted for K=105 - espilon")
+print(O.M.moins)
+
+```
+
+```{r, echo=F}
+VolData.ATM <- VolData[[2]][2]
+##############
+f <- function(vol=VolData.ATM, spot=Spot){
+  GBSPrice(PutCall='c', S=spot, K=K+epsi, T=T, r=r, b=b, sigma=vol)
+}
+B.vega <- Vega(f, VolData.ATM, Spot)
+B.vanna <- Vanna(f, VolData.ATM, Spot)
+B.volga <- Volga(f, VolData.ATM, Spot)
+print("vega for K=105 - espilon")
+B.vega
+print("vanna for K=105 - espilon")
+B.vanna
+print("volga for K=105 - espilon")
+B.volga
+b.risk.plus <- c(B.vega, B.vanna, B.volga)
+X.plus <- solve(A, b.risk.plus)
+
+O.BS.plus <- GBSPrice(PutCall='c', S=100, K=K+epsi, T=T, r=r, b=b, sigma=VolData[[2]][2])
+
+
+somme <- 0
+for (i in 1:3) {
+  somme <- somme + X.plus[i]*(C.M[i]-C.BS[i])
+}
+O.M.plus<- O.BS.plus + somme
+
+print("price with BS for K=105 + espilon")
+print(O.BS.plus)
+print("price ajusted for K=105 + espilon")
+print(O.M.plus)
+
+```
+
+
+```{r, echo=F}
+print("price for a digital call paying 2*epsi")
+O =O.M.moins - O.M.plus
+print(O)
+
+
+prix.call.digital = O*(1/(2*epsi))
+print("price for a digital call paying 1")
+prix.call.digital
+```
+
